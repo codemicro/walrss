@@ -12,6 +12,7 @@ import (
 const (
 	sessionCookieKey = "walrss-session"
 	sessionDuration  = (time.Hour * 24) * 7 // 7 days
+	userIDLocalKey   = "userID"
 )
 
 type Server struct {
@@ -54,6 +55,19 @@ func New(st *state.State) (*Server, error) {
 }
 
 func (s *Server) registerHandlers() {
+	s.app.Use(func(ctx *fiber.Ctx) error {
+		if token := ctx.Cookies(sessionCookieKey); token != "" {
+			log.Debug().Msgf("cookie %s=%s", sessionCookieKey, token)
+			userID, createdAt, err := core.ValidateSessionToken(token)
+			if err == nil && time.Now().Sub(createdAt) < sessionDuration {
+				log.Debug().Msg("session valid")
+				ctx.Locals(userIDLocalKey, userID)
+			}
+		}
+
+		return ctx.Next()
+	})
+
 	s.app.Get(urls.AuthRegister, s.authRegister)
 	s.app.Post(urls.AuthRegister, s.authRegister)
 
@@ -65,7 +79,17 @@ func (s *Server) Run() error {
 	return s.app.Listen(s.state.Config.GetHTTPAddress())
 }
 
-func UserErrorToResponse(ctx *fiber.Ctx, ue core.UserError) error {
+func userErrorToResponse(ctx *fiber.Ctx, ue core.UserError) error {
 	ctx.Status(ue.Status)
 	return ctx.SendString(ue.Error())
+}
+
+func getCurrentUserID(ctx *fiber.Ctx) string {
+	if x := ctx.Locals(userIDLocalKey); x != nil {
+		s, ok := x.(string)
+		if ok {
+			return s
+		}
+	}
+	return ""
 }

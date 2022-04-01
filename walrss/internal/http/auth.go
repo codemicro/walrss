@@ -12,6 +12,10 @@ import (
 func (s *Server) authRegister(ctx *fiber.Ctx) error {
 	page := new(views.RegisterPage)
 
+	if getCurrentUserID(ctx) != "" {
+		goto success
+	}
+
 	if ctx.Method() == fiber.MethodPost {
 		password := ctx.FormValue("password")
 		passwordConfirmation := ctx.FormValue("passwordConfirmation")
@@ -44,15 +48,21 @@ func (s *Server) authRegister(ctx *fiber.Ctx) error {
 			HTTPOnly: true,
 		})
 
-		return ctx.Redirect(urls.Index)
+		goto success
 	}
 
 exit:
 	return views.SendPage(ctx, page)
+success:
+	return ctx.Redirect(urls.Index)
 }
 
 func (s *Server) authSignIn(ctx *fiber.Ctx) error {
 	page := &views.SignInPage{}
+
+	if getCurrentUserID(ctx) != "" {
+		goto success
+	}
 
 	if ctx.Method() == fiber.MethodPost {
 		email := ctx.FormValue("email")
@@ -88,11 +98,12 @@ func (s *Server) authSignIn(ctx *fiber.Ctx) error {
 			HTTPOnly: true,
 		})
 
-		return ctx.Redirect(urls.Index)
+		goto success
 	}
 
 	return views.SendPage(ctx, page)
-
+success:
+	return ctx.Redirect(urls.Index)
 incorrectUsernameOrPassword:
 	ctx.Status(fiber.StatusUnauthorized)
 	return views.SendPage(ctx, &views.SignInPage{Problem: "Incorrect username or password"})
