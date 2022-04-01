@@ -1,0 +1,33 @@
+{% import "github.com/codemicro/walrss/walrss/internal/urls" %}
+
+{% code type SignInPage struct {
+    BasePage
+    Problem string
+} %}
+
+{% func (p *SignInPage) Title() %}Sign in{% endfunc %}
+{% func (p *SignInPage) Body() %}
+{%= navbar() %}
+
+<div class="container">
+    <h1>Sign in</h1>
+
+    {% if p.Problem != "" %}
+        {%= ProblemBox(p.Problem) %}
+    {% endif %}
+
+    <form action="" method="post">
+        <div class="mb-3">
+            <label for="emailInput" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="emailInput" name="email">
+        </div>
+        <div class="mb-3">
+            <label for="passwordInput" class="form-label">Password</label>
+            <input type="password" class="form-control" id="passwordInput" name="password">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <br>
+    <a href="{%s= urls.AuthRegister %}">No account? Click here to register</a>
+</div>
+{% endfunc %}

@@ -1,6 +1,6 @@
 .PHONY: prebuild fmt
 
-build:
+build: templates
 	mkdir -p bin
 	go build -o bin/walrss github.com/codemicro/walrss/walrss
 
@@ -10,3 +10,6 @@ run: build
 
 fmt:
 	go fmt github.com/codemicro/walrss/...
+
+templates:
+	qtc -skipLineComments -ext qtpl.html -dir walrss/internal/http/views

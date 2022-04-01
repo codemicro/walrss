@@ -1,29 +1,99 @@
 package http
 
 import (
+	"errors"
 	"github.com/codemicro/walrss/walrss/internal/core"
+	"github.com/codemicro/walrss/walrss/internal/http/views"
+	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
 	"time"
 )
 
 func (s *Server) authRegister(ctx *fiber.Ctx) error {
-	user, err := core.RegisterUser(s.state,
-		ctx.FormValue("email"),
-		ctx.FormValue("password"),
-	)
-	if err != nil {
-		return err
+	page := new(views.RegisterPage)
+
+	if ctx.Method() == fiber.MethodPost {
+		password := ctx.FormValue("password")
+		passwordConfirmation := ctx.FormValue("passwordConfirmation")
+		if password != passwordConfirmation {
+			page.Problem = "Passwords do not match"
+			goto exit
+		}
+
+		user, err := core.RegisterUser(
+			s.state,
+			ctx.FormValue("email"),
+			password,
+		)
+		if err != nil {
+			if core.IsUserError(err) {
+				ctx.Status(core.GetUserErrorStatus(err))
+				page.Problem = "Could not register account: " + err.Error()
+				goto exit
+			}
+			return err
+		}
+
+		token := core.GenerateSessionToken(user.ID)
+
+		ctx.Cookie(&fiber.Cookie{
+			Name:     sessionCookieKey,
+			Value:    token,
+			Expires:  time.Now().UTC().Add(sessionDuration),
+			Secure:   !s.state.Config.Debug,
+			HTTPOnly: true,
+		})
+
+		return ctx.Redirect(urls.Index)
 	}
 
-	token := core.GenerateSessionToken(user.ID)
+exit:
+	return views.SendPage(ctx, page)
+}
 
-	ctx.Cookie(&fiber.Cookie{
-		Name:     sessionCookieKey,
-		Value:    token,
-		Expires:  time.Now().UTC().Add(sessionDuration),
-		Secure:   !s.state.Config.Debug,
-		HTTPOnly: true,
-	})
+func (s *Server) authSignIn(ctx *fiber.Ctx) error {
+	page := &views.SignInPage{}
 
-	return ctx.SendString("ok!")
+	if ctx.Method() == fiber.MethodPost {
+		email := ctx.FormValue("email")
+
+		ok, err := core.AreUserCredentialsCorrect(
+			s.state,
+			email,
+			ctx.FormValue("password"),
+		)
+		if err != nil {
+			if errors.Is(err, core.ErrNotFound) {
+				goto incorrectUsernameOrPassword
+			}
+			return err
+		}
+
+		if !ok {
+			goto incorrectUsernameOrPassword
+		}
+
+		user, err := core.GetUserByEmail(s.state, email)
+		if err != nil {
+			return err
+		}
+
+		token := core.GenerateSessionToken(user.ID)
+
+		ctx.Cookie(&fiber.Cookie{
+			Name:     sessionCookieKey,
+			Value:    token,
+			Expires:  time.Now().UTC().Add(sessionDuration),
+			Secure:   !s.state.Config.Debug,
+			HTTPOnly: true,
+		})
+
+		return ctx.Redirect(urls.Index)
+	}
+
+	return views.SendPage(ctx, page)
+
+incorrectUsernameOrPassword:
+	ctx.Status(fiber.StatusUnauthorized)
+	return views.SendPage(ctx, &views.SignInPage{Problem: "Incorrect username or password"})
 }

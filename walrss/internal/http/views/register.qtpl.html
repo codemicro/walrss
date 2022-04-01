@@ -1,0 +1,37 @@
+{% import "github.com/codemicro/walrss/walrss/internal/urls" %}
+
+{% code type RegisterPage struct {
+    BasePage
+    Problem string
+} %}
+
+{% func (p *RegisterPage) Title() %}Register{% endfunc %}
+{% func (p *RegisterPage) Body() %}
+{%= navbar() %}
+
+<div class="container">
+    <h1>Register</h1>
+
+    {% if p.Problem != "" %}
+        {%= ProblemBox(p.Problem) %}
+    {% endif %}
+
+    <form action="" method="post">
+        <div class="mb-3">
+            <label for="emailInput" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="emailInput" name="email">
+        </div>
+        <div class="mb-3">
+            <label for="passwordInput" class="form-label">Password</label>
+            <input type="password" class="form-control" id="passwordInput" name="password">
+        </div>
+        <div class="mb-3">
+            <label for="passwordConfirmation" class="form-label">Retype password</label>
+            <input type="password" class="form-control" id="passwordConfirmation" name="passwordConfirmation">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <br>
+    <a href="{%s= urls.AuthSignIn %}">Already got an account? Click here to sign in</a>
+</div>
+{% endfunc %}
