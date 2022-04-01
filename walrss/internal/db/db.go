@@ -1,8 +1,6 @@
 package db
 
-import (
-	bh "github.com/timshannon/bolthold"
-)
+import bh "github.com/timshannon/bolthold"
 
 func New(filename string) (*bh.Store, error) {
 	store, err := bh.Open(filename, 0644, nil)
@@ -14,7 +12,7 @@ func New(filename string) (*bh.Store, error) {
 
 type User struct {
 	ID       string `boldholdKey:""`
-	Email    string `boltholdUnique:"UniqueEmail" boltholdIndex:"Email"`
+	Email    string `boltholdUnique:"UniqueEmail"`
 	Password []byte
 	Salt     []byte
 

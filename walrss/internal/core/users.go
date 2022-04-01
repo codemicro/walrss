@@ -31,7 +31,7 @@ func RegisterUser(st *state.State, email, password string) (*db.User, error) {
 
 	u.Password = hash
 
-	if err := st.Data.Insert(bh.Key, u); err != nil {
+	if err := st.Data.Insert(u.ID, u); err != nil {
 		if errors.Is(err, bh.ErrUniqueExists) {
 			return nil, NewUserError("email address in use")
 		}
