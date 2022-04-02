@@ -18,7 +18,7 @@ var (
 
 func streamnavbar(qw422016 *qt422016.Writer) {
 	qw422016.N().S(`
-<nav class="navbar navbar-light bg-light mb-3">
+<nav class="navbar navbar-light mb-3" style="background-color: #EFCB68">
     <div class="container-fluid">
         <a class="navbar-brand" href="`)
 	qw422016.N().S(urls.Index)

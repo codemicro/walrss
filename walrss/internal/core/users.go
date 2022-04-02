@@ -57,13 +57,34 @@ func AreUserCredentialsCorrect(st *state.State, email, password string) (bool, e
 	return true, nil
 }
 
-func GetUserByEmail(st *state.State, userID string) (*db.User, error) {
+func GetUserByID(st *state.State, userID string) (*db.User, error) {
 	user := new(db.User)
-	if err := st.Data.FindOne(user, bh.Where("Email").Eq(userID)); err != nil {
+	if err := st.Data.FindOne(user, bh.Where("ID").Eq(userID)); err != nil {
 		if errors.Is(err, bh.ErrNotFound) {
 			return nil, ErrNotFound
 		}
 		return nil, err
 	}
 	return user, nil
+}
+
+func GetUserByEmail(st *state.State, email string) (*db.User, error) {
+	user := new(db.User)
+	if err := st.Data.FindOne(user, bh.Where("Email").Eq(email)); err != nil {
+		if errors.Is(err, bh.ErrNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
+func UpdateUser(st *state.State, user *db.User) error {
+	if err := st.Data.Update(user.ID, user); err != nil {
+		if errors.Is(err, bh.ErrNotFound) {
+			return ErrNotFound
+		}
+		return err
+	}
+	return nil
 }

@@ -6,4 +6,8 @@ const (
 	Auth         = "/auth"
 	AuthSignIn   = Auth + "/signin"
 	AuthRegister = Auth + "/register"
+
+	Edit             = "/edit"
+	EditEnabledState = Edit + "/enabled"
+	EditTimings      = Edit + "/timings"
 )

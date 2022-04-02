@@ -1,0 +1,137 @@
+{% import "github.com/codemicro/walrss/walrss/internal/db" %}
+{% import "github.com/codemicro/walrss/walrss/internal/urls" %}
+
+{% code type MainPage struct {
+    BasePage
+    EnableDigests bool
+    SelectedDay db.SendDay
+    SelectedTime int
+} %}
+
+{% func (p *MainPage) Title() %}{% endfunc %}
+{% func (p *MainPage) Body() %}
+{%= navbar() %}
+
+<div class="container">
+    <h1>My settings</h1>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            Schedule
+        </div>
+        <div class="card-body">
+
+            <div class="mb-2">
+                <input
+                        type="checkbox"
+                        id="enableCheckbox"
+                        name="enable"
+                        {% if p.EnableDigests %}checked{% endif %}
+                        hx-put="{%s= urls.EditEnabledState %}"
+                        hx-indicator="#enableCheckboxIndicator"
+                >
+                <label for="enableCheckbox">Enable digest delivery</label>
+                <i class="ml-2 iconLoading htmx-indicator" id="enableCheckboxIndicator"></i>
+            </div>
+
+            <form
+                    class="row row-cols-lg-auto g-3 align-items-center"
+                    hx-put="{%s urls.EditTimings %}"
+                    hx-indicator="#submitScheduleIndicator"
+            >
+                <div class="col-12">
+                    Deliver my digests
+                </div>
+
+                <div class="col-12">
+                    <label class="visually-hidden" for="daySelection">Day of week</label>
+                    <select
+                            class="form-select"
+                            id="daySelection"
+                            name="day"
+                            {% if !p.EnableDigests %}disabled{% endif %}
+                    >
+                        {% for i := db.SendDaily; i <= db.SendOnSunday; i += 1 %}
+                            <option
+                                    value="{%d int(i) %}"
+                                    {% if p.SelectedDay == i %}selected{% endif %}
+                            >
+                                {% if i != db.SendDaily %}on {% endif %}{%s i.String() %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12">at</div>
+
+                <div class="col-12">
+                    <label class="visually-hidden" for="timeSelection">Time of day</label>
+                    <select
+                            class="form-select"
+                            id="timeSelection"
+                            name="time"
+                            {% if !p.EnableDigests %}disabled{% endif %}
+                    >
+                        {% for i := 0; i <= 23; i += 1 %}
+                            <option
+                                    value="{%d i %}"
+                                    {% if p.SelectedTime == i %}selected{% endif %}
+                            >
+                                {%d i %}:00
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12">UTC</div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary" {% if !p.EnableDigests %}disabled{% endif %}>Save</button>
+                    <i class="iconLoading align-middle htmx-indicator" style="margin-left: 1rem; width: 2rem;" id="submitScheduleIndicator"></i>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            Feeds
+        </div>
+        <div class="card-body">
+
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">First</th>
+                    <th scope="col">Last</th>
+                    <th scope="col">Handle</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">1</th>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>@mdo</td>
+                </tr>
+                <tr>
+                    <th scope="row">2</th>
+                    <td>Jacob</td>
+                    <td>Thornton</td>
+                    <td>@fat</td>
+                </tr>
+                <tr>
+                    <th scope="row">3</th>
+                    <td colspan="2">Larry the Bird</td>
+                    <td>@twitter</td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+{% endfunc %}

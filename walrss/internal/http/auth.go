@@ -58,7 +58,9 @@ success:
 }
 
 func (s *Server) authSignIn(ctx *fiber.Ctx) error {
-	page := &views.SignInPage{}
+	page := &views.SignInPage{
+		Problem: ctx.Query("problem"),
+	}
 
 	if getCurrentUserID(ctx) != "" {
 		goto success
@@ -103,7 +105,9 @@ func (s *Server) authSignIn(ctx *fiber.Ctx) error {
 
 	return views.SendPage(ctx, page)
 success:
-	return ctx.Redirect(urls.Index)
+	return ctx.Redirect(
+		ctx.Query("next", urls.Index),
+	)
 incorrectUsernameOrPassword:
 	ctx.Status(fiber.StatusUnauthorized)
 	return views.SendPage(ctx, &views.SignInPage{Problem: "Incorrect username or password"})

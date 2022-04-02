@@ -2,10 +2,13 @@ package http
 
 import (
 	"github.com/codemicro/walrss/walrss/internal/core"
+	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/stevelacy/daz"
+	"net/url"
 	"time"
 )
 
@@ -68,11 +71,16 @@ func (s *Server) registerHandlers() {
 		return ctx.Next()
 	})
 
+	s.app.Get(urls.Index, s.mainPage)
+
 	s.app.Get(urls.AuthRegister, s.authRegister)
 	s.app.Post(urls.AuthRegister, s.authRegister)
 
 	s.app.Get(urls.AuthSignIn, s.authSignIn)
 	s.app.Post(urls.AuthSignIn, s.authSignIn)
+
+	s.app.Put(urls.EditEnabledState, s.editEnabledState)
+	s.app.Put(urls.EditTimings, s.editTimings)
 }
 
 func (s *Server) Run() error {
@@ -92,4 +100,33 @@ func getCurrentUserID(ctx *fiber.Ctx) string {
 		}
 	}
 	return ""
+}
+
+func requestStandardSignIn(ctx *fiber.Ctx) error {
+	rdu := ctx.OriginalURL() // TODO: Could this use of OriginalURL be insecure?
+
+	queryParams := make(url.Values)
+	queryParams.Add("problem", "Please sign in first.")
+	queryParams.Add("next", rdu)
+	nextURL := urls.AuthSignIn + "?" + queryParams.Encode()
+
+	ctx.Status(fiber.StatusUnauthorized)
+
+	// Instead of plainly redirecting, we use a HTML redirect here. This is to clear the HTTP verb used for this
+	// request. For example - if the request was made with DELETE, using ctx.Redirect will preserve that verb. Using
+	// this method will restart with a GET verb.
+	return views.SendPage(ctx, &views.PolyPage{
+		TitleString:      "Please sign in first",
+		BodyContent:      daz.H("p", "Please sign in first. If your browser doesn't automatically redirect you, click ", daz.H("a", daz.Attr{"href": nextURL}, "here"), ".")(),
+		ExtraHeadContent: daz.H("meta", daz.Attr{"http-equiv": "Refresh", "content": "0; " + nextURL})(),
+	})
+}
+
+func requestFragmentSignIn(ctx *fiber.Ctx, nextURL string) error {
+	queryParams := make(url.Values)
+	queryParams.Add("problem", "Please sign in first.")
+	queryParams.Add("next", nextURL)
+
+	ctx.Set("HX-Redirect", urls.AuthSignIn+"?"+queryParams.Encode())
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	goalone "github.com/bwmarrin/go-alone"
+	"strings"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func init() {
 }
 
 func GenerateSessionToken(userID string) string {
-	combined := combineStringAndSalt(userID, sessionSalt)
+	combined := append([]byte(userID), sessionSalt...)
 	return hex.EncodeToString(sessionSigner.Sign(combined))
 }
 
@@ -36,5 +37,5 @@ func ValidateSessionToken(input string) (string, time.Time, error) {
 	}
 
 	parsed := sessionSigner.Parse(signed)
-	return string(parsed.Payload), parsed.Timestamp, nil
+	return strings.TrimSuffix(string(parsed.Payload), string(sessionSalt)), parsed.Timestamp, nil
 }
