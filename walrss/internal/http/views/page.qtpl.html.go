@@ -39,19 +39,22 @@ func StreamRenderPage(qw422016 *qt422016.Writer, p Page) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/htmx.org@1.7.0"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <style>
         [disabled] {
             cursor: not-allowed;
         }
 
-        i.iconLoading {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns:svg='http://www.w3.org/2000/svg' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='64px' height='64px' viewBox='0 0 128 128' xml:space='preserve'%3E%3Cg%3E%3Cpath d='M75.4 126.63a11.43 11.43 0 0 1-2.1-22.65 40.9 40.9 0 0 0 30.5-30.6 11.4 11.4 0 1 1 22.27 4.87h.02a63.77 63.77 0 0 1-47.8 48.05v-.02a11.38 11.38 0 0 1-2.93.37z' fill='%23000000'/%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 64 64' to='360 64 64' dur='1000ms' repeatCount='indefinite'%3E%3C/animateTransform%3E%3C/g%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-size: cover;
-            display: inline-block;
-            width: 1rem;
-            aspect-ratio: 1/1;
+        .request-indicator {
+            display:none;
         }
+        .htmx-request .request-indicator{
+            display: block;
+        }
+        .htmx-request.request-indicator{
+            display: block;
+        }
+
     </style>
     `)
 	p.StreamHeadContent(qw422016)

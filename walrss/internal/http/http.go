@@ -130,3 +130,7 @@ func requestFragmentSignIn(ctx *fiber.Ctx, nextURL string) error {
 	ctx.Set("HX-Redirect", urls.AuthSignIn+"?"+queryParams.Encode())
 	return nil
 }
+
+func fragmentEmitSuccess(ctx *fiber.Ctx) {
+	ctx.Set("HX-Trigger", "successResponse")
+}

@@ -44,138 +44,53 @@ func (p *MainPage) Title() string {
 
 func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
 	qw422016.N().S(`
+<div class="position-fixed top end-0 p-3" style="z-index: 11">
+    <div id="toast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastBody">
+                Hello, world! This is a toast message.
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 `)
 	streamnavbar(qw422016)
 	qw422016.N().S(`
 
+<script>
+    let toast = document.getElementById("toast")
+    let toastBody = document.getElementById("toastBody")
+
+    function showToast(delay) {
+        new bootstrap.Toast(toast, {delay: delay}).show();
+    }
+
+    function errorHandler() {
+        toastBody.innerText = "Internal error: action incomplete";
+        toast.classList.remove("bg-success")
+        toast.classList.add("bg-danger")
+        showToast(5000)
+    }
+
+    document.body.addEventListener("htmx:sendError", errorHandler);
+    document.body.addEventListener("htmx:responseError", errorHandler);
+
+    document.body.addEventListener("successResponse", function () {
+        toastBody.innerText = "Success!"
+        toast.classList.remove("bg-danger")
+        toast.classList.add("bg-success")
+        showToast(1500)
+    })
+</script>
+
 <div class="container">
     <h1>My settings</h1>
 
-    <div class="card mt-3">
-        <div class="card-header">
-            Schedule
-        </div>
-        <div class="card-body">
-
-            <div class="mb-2">
-                <input
-                        type="checkbox"
-                        id="enableCheckbox"
-                        name="enable"
-                        `)
-	if p.EnableDigests {
-		qw422016.N().S(`checked`)
-	}
+    `)
+	p.StreamRenderScheduleCard(qw422016)
 	qw422016.N().S(`
-                        hx-put="`)
-	qw422016.N().S(urls.EditEnabledState)
-	qw422016.N().S(`"
-                        hx-indicator="#enableCheckboxIndicator"
-                >
-                <label for="enableCheckbox">Enable digest delivery</label>
-                <i class="ml-2 iconLoading htmx-indicator" id="enableCheckboxIndicator"></i>
-            </div>
-
-            <form
-                    class="row row-cols-lg-auto g-3 align-items-center"
-                    hx-put="`)
-	qw422016.E().S(urls.EditTimings)
-	qw422016.N().S(`"
-                    hx-indicator="#submitScheduleIndicator"
-            >
-                <div class="col-12">
-                    Deliver my digests
-                </div>
-
-                <div class="col-12">
-                    <label class="visually-hidden" for="daySelection">Day of week</label>
-                    <select
-                            class="form-select"
-                            id="daySelection"
-                            name="day"
-                            `)
-	if !p.EnableDigests {
-		qw422016.N().S(`disabled`)
-	}
-	qw422016.N().S(`
-                    >
-                        `)
-	for i := db.SendDaily; i <= db.SendOnSunday; i += 1 {
-		qw422016.N().S(`
-                            <option
-                                    value="`)
-		qw422016.N().D(int(i))
-		qw422016.N().S(`"
-                                    `)
-		if p.SelectedDay == i {
-			qw422016.N().S(`selected`)
-		}
-		qw422016.N().S(`
-                            >
-                                `)
-		if i != db.SendDaily {
-			qw422016.N().S(`on `)
-		}
-		qw422016.E().S(i.String())
-		qw422016.N().S(`
-                            </option>
-                        `)
-	}
-	qw422016.N().S(`
-                    </select>
-                </div>
-
-                <div class="col-12">at</div>
-
-                <div class="col-12">
-                    <label class="visually-hidden" for="timeSelection">Time of day</label>
-                    <select
-                            class="form-select"
-                            id="timeSelection"
-                            name="time"
-                            `)
-	if !p.EnableDigests {
-		qw422016.N().S(`disabled`)
-	}
-	qw422016.N().S(`
-                    >
-                        `)
-	for i := 0; i <= 23; i += 1 {
-		qw422016.N().S(`
-                            <option
-                                    value="`)
-		qw422016.N().D(i)
-		qw422016.N().S(`"
-                                    `)
-		if p.SelectedTime == i {
-			qw422016.N().S(`selected`)
-		}
-		qw422016.N().S(`
-                            >
-                                `)
-		qw422016.N().D(i)
-		qw422016.N().S(`:00
-                            </option>
-                        `)
-	}
-	qw422016.N().S(`
-                    </select>
-                </div>
-
-                <div class="col-12">UTC</div>
-
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary" `)
-	if !p.EnableDigests {
-		qw422016.N().S(`disabled`)
-	}
-	qw422016.N().S(`>Save</button>
-                    <i class="iconLoading align-middle htmx-indicator" style="margin-left: 1rem; width: 2rem;" id="submitScheduleIndicator"></i>
-                </div>
-            </form>
-
-        </div>
-    </div>
 
     <div class="card mt-3">
         <div class="card-header">
@@ -229,6 +144,162 @@ func (p *MainPage) WriteBody(qq422016 qtio422016.Writer) {
 func (p *MainPage) Body() string {
 	qb422016 := qt422016.AcquireByteBuffer()
 	p.WriteBody(qb422016)
+	qs422016 := string(qb422016.B)
+	qt422016.ReleaseByteBuffer(qb422016)
+	return qs422016
+}
+
+func (p *MainPage) StreamRenderScheduleCard(qw422016 *qt422016.Writer) {
+	qw422016.N().S(`
+<div class="card mt-3" id="scheduleCard" hx-target="this" hx-swap="outerHTML">
+    <div class="card-header">
+        Schedule
+    </div>
+    <div class="card-body">
+
+        <div class="mb-2 row row-cols-lg-auto align-items-center">
+            <div class="col-12">
+                <input
+                        type="checkbox"
+                        id="enableCheckbox"
+                        name="enable"
+                        `)
+	if p.EnableDigests {
+		qw422016.N().S(`checked`)
+	}
+	qw422016.N().S(`
+                        hx-put="`)
+	qw422016.N().S(urls.EditEnabledState)
+	qw422016.N().S(`"
+                        hx-indicator="#enableCheckboxIndicator"
+                >
+                <label for="enableCheckbox">Enable digest delivery</label>
+            </div>
+
+            <div class="col-12">
+                <div class="spinner-border spinner-border-sm request-indicator align-middle" style="width: 1rem; height: 1rem;" role="status" id="enableCheckboxIndicator">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <form
+                class="row row-cols-lg-auto g-3 align-items-center"
+                hx-put="`)
+	qw422016.E().S(urls.EditTimings)
+	qw422016.N().S(`"
+                hx-indicator="#submitScheduleIndicator"
+        >
+            <div class="col-12">
+                Deliver my digests
+            </div>
+
+            <div class="col-12">
+                <label class="visually-hidden" for="daySelection">Day of week</label>
+                <select
+                        class="form-select"
+                        id="daySelection"
+                        name="day"
+                        `)
+	if !p.EnableDigests {
+		qw422016.N().S(`disabled`)
+	}
+	qw422016.N().S(`
+                >
+                    `)
+	for i := db.SendDaily; i <= db.SendOnSunday; i += 1 {
+		qw422016.N().S(`
+                    <option
+                            value="`)
+		qw422016.N().D(int(i))
+		qw422016.N().S(`"
+                            `)
+		if p.SelectedDay == i {
+			qw422016.N().S(`selected`)
+		}
+		qw422016.N().S(`
+                    >
+                        `)
+		if i != db.SendDaily {
+			qw422016.N().S(`on `)
+		}
+		qw422016.E().S(i.String())
+		qw422016.N().S(`
+                    </option>
+                    `)
+	}
+	qw422016.N().S(`
+                </select>
+            </div>
+
+            <div class="col-12">at</div>
+
+            <div class="col-12">
+                <label class="visually-hidden" for="timeSelection">Time of day</label>
+                <select
+                        class="form-select"
+                        id="timeSelection"
+                        name="time"
+                        `)
+	if !p.EnableDigests {
+		qw422016.N().S(`disabled`)
+	}
+	qw422016.N().S(`
+                >
+                    `)
+	for i := 0; i <= 23; i += 1 {
+		qw422016.N().S(`
+                    <option
+                            value="`)
+		qw422016.N().D(i)
+		qw422016.N().S(`"
+                            `)
+		if p.SelectedTime == i {
+			qw422016.N().S(`selected`)
+		}
+		qw422016.N().S(`
+                    >
+                        `)
+		qw422016.N().D(i)
+		qw422016.N().S(`:00
+                    </option>
+                    `)
+	}
+	qw422016.N().S(`
+                </select>
+            </div>
+
+            <div class="col-12">UTC</div>
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary" `)
+	if !p.EnableDigests {
+		qw422016.N().S(`disabled`)
+	}
+	qw422016.N().S(`>Save</button>
+            </div>
+
+            <div class="col-12">
+                <div class="spinner-border align-middle request-indicator" id="submitScheduleIndicator" style="width: 2rem; height: 2rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+`)
+}
+
+func (p *MainPage) WriteRenderScheduleCard(qq422016 qtio422016.Writer) {
+	qw422016 := qt422016.AcquireWriter(qq422016)
+	p.StreamRenderScheduleCard(qw422016)
+	qt422016.ReleaseWriter(qw422016)
+}
+
+func (p *MainPage) RenderScheduleCard() string {
+	qb422016 := qt422016.AcquireByteBuffer()
+	p.WriteRenderScheduleCard(qb422016)
 	qs422016 := string(qb422016.B)
 	qt422016.ReleaseByteBuffer(qb422016)
 	return qs422016

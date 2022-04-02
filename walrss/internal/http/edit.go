@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/db"
+	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
@@ -12,7 +13,7 @@ import (
 func (s *Server) editEnabledState(ctx *fiber.Ctx) error {
 	currentUserID := getCurrentUserID(ctx)
 	if currentUserID == "" {
-		return requestStandardSignIn(ctx)
+		return requestFragmentSignIn(ctx, urls.Index)
 	}
 
 	user, err := core.GetUserByID(s.state, currentUserID)
@@ -30,14 +31,18 @@ func (s *Server) editEnabledState(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	ctx.Set("HX-Redirect", urls.Index)
-	return nil
+	fragmentEmitSuccess(ctx)
+	return ctx.SendString((&views.MainPage{
+		EnableDigests: user.Schedule.Active,
+		SelectedDay:   user.Schedule.Day,
+		SelectedTime:  user.Schedule.Hour,
+	}).RenderScheduleCard())
 }
 
 func (s *Server) editTimings(ctx *fiber.Ctx) error {
 	currentUserID := getCurrentUserID(ctx)
 	if currentUserID == "" {
-		return requestStandardSignIn(ctx)
+		return requestFragmentSignIn(ctx, urls.Index)
 	}
 
 	user, err := core.GetUserByID(s.state, currentUserID)
@@ -69,6 +74,10 @@ func (s *Server) editTimings(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	ctx.Set("HX-Redirect", urls.Index)
-	return nil
+	fragmentEmitSuccess(ctx)
+	return ctx.SendString((&views.MainPage{
+		EnableDigests: user.Schedule.Active,
+		SelectedDay:   user.Schedule.Day,
+		SelectedTime:  user.Schedule.Hour,
+	}).RenderScheduleCard())
 }
