@@ -81,3 +81,53 @@ func (s *Server) editTimings(ctx *fiber.Ctx) error {
 		SelectedTime:  user.Schedule.Hour,
 	}).RenderScheduleCard())
 }
+
+func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
+	currentUserID := getCurrentUserID(ctx)
+	if currentUserID == "" {
+		return requestFragmentSignIn(ctx, urls.Index)
+	}
+
+	feedID := ctx.Params("id")
+
+	feed, err := core.GetFeed(s.state, feedID)
+	if err != nil {
+		return err
+	}
+
+	switch ctx.Method() {
+	case fiber.MethodGet:
+		return ctx.SendString(views.RenderFeedEditRow(feed.ID, feed.Name, feed.URL))
+	case fiber.MethodDelete:
+		if err := core.DeleteFeed(s.state, feed.ID); err != nil {
+			return err
+		}
+		return nil
+	case fiber.MethodPut:
+		feed.Name = ctx.FormValue("name")
+		feed.URL = ctx.FormValue("url")
+
+		if err := core.UpdateFeed(s.state, feed); err != nil {
+			return err
+		}
+		return ctx.SendString(views.RenderFeedRow(feed.ID, feed.Name, feed.URL))
+	}
+
+	panic("unreachable")
+}
+
+func (s *Server) cancelEditFeedItem(ctx *fiber.Ctx) error {
+	currentUserID := getCurrentUserID(ctx)
+	if currentUserID == "" {
+		return requestFragmentSignIn(ctx, urls.Index)
+	}
+
+	feedID := ctx.Params("id")
+
+	feed, err := core.GetFeed(s.state, feedID)
+	if err != nil {
+		return err
+	}
+
+	return ctx.SendString(views.RenderFeedRow(feed.ID, feed.Name, feed.URL))
+}

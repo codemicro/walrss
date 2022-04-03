@@ -28,3 +28,10 @@ type User struct {
 		Hour   int     `boltholdIndex:"Hour"`
 	}
 }
+
+type Feed struct {
+	ID     string `boltholdKey:""`
+	URL    string
+	Name   string
+	UserID string `boldholdIndex:"UserID"`
+}

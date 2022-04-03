@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/state"
@@ -28,6 +29,8 @@ func New(st *state.State) (*Server, error) {
 		DisableStartupMessage: !st.Config.Debug,
 		AppName:               "Walrss",
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			fmt.Println("Got ERROR", err)
+
 			code := fiber.StatusInternalServerError
 			msg := "Internal Server Error"
 
@@ -81,6 +84,14 @@ func (s *Server) registerHandlers() {
 
 	s.app.Put(urls.EditEnabledState, s.editEnabledState)
 	s.app.Put(urls.EditTimings, s.editTimings)
+
+	s.app.Get(urls.EditFeedItem, s.editFeedItem)
+	s.app.Put(urls.EditFeedItem, s.editFeedItem)
+	s.app.Delete(urls.EditFeedItem, s.editFeedItem)
+	s.app.Get(urls.CancelEditFeedItem, s.cancelEditFeedItem)
+
+	s.app.Get(urls.NewFeedItem, s.newFeedItem)
+	s.app.Post(urls.NewFeedItem, s.newFeedItem)
 }
 
 func (s *Server) Run() error {

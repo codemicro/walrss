@@ -7,6 +7,8 @@ import "github.com/codemicro/walrss/walrss/internal/db"
 
 import "github.com/codemicro/walrss/walrss/internal/urls"
 
+import "github.com/lithammer/shortuuid/v4"
+
 import (
 	qtio422016 "io"
 
@@ -23,6 +25,7 @@ type MainPage struct {
 	EnableDigests bool
 	SelectedDay   db.SendDay
 	SelectedTime  int
+	Feeds         []*db.Feed
 }
 
 func (p *MainPage) StreamTitle(qw422016 *qt422016.Writer) {
@@ -67,15 +70,19 @@ func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
         new bootstrap.Toast(toast, {delay: delay}).show();
     }
 
-    function errorHandler() {
-        toastBody.innerText = "Internal error: action incomplete";
+    function errorHandler(text) {
+        toastBody.innerText = "Error: " + text;
         toast.classList.remove("bg-success")
         toast.classList.add("bg-danger")
         showToast(5000)
     }
 
-    document.body.addEventListener("htmx:sendError", errorHandler);
-    document.body.addEventListener("htmx:responseError", errorHandler);
+    document.body.addEventListener("htmx:sendError", function () {
+        errorHandler("could not communicate with server");
+    });
+    document.body.addEventListener("htmx:responseError", function (evt) {
+        errorHandler(evt.detail.xhr.response)
+    });
 
     document.body.addEventListener("successResponse", function () {
         toastBody.innerText = "Success!"
@@ -100,31 +107,36 @@ func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
 
             <table class="table">
                 <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">First</th>
-                    <th scope="col">Last</th>
-                    <th scope="col">Handle</th>
-                </tr>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">URL</th>
+                        <th scope="col">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+                                <button
+                                        type="button"
+                                        class="btn btn-primary"
+                                        hx-get="`)
+	qw422016.N().S(urls.NewFeedItem)
+	qw422016.N().S(`"
+                                        hx-target="#feedListing"
+                                        hx-swap="beforeend"
+                                >
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                        </th>
+                    </tr>
                 </thead>
-                <tbody>
-                <tr>
-                    <th scope="row">1</th>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                </tr>
-                <tr>
-                    <th scope="row">2</th>
-                    <td>Jacob</td>
-                    <td>Thornton</td>
-                    <td>@fat</td>
-                </tr>
-                <tr>
-                    <th scope="row">3</th>
-                    <td colspan="2">Larry the Bird</td>
-                    <td>@twitter</td>
-                </tr>
+                <tbody id="feedListing">
+                    `)
+	for _, feed := range p.Feeds {
+		qw422016.N().S(`
+                        `)
+		StreamRenderFeedRow(qw422016, feed.ID, feed.Name, feed.URL)
+		qw422016.N().S(`
+                    `)
+	}
+	qw422016.N().S(`
                 </tbody>
             </table>
 
@@ -144,6 +156,199 @@ func (p *MainPage) WriteBody(qq422016 qtio422016.Writer) {
 func (p *MainPage) Body() string {
 	qb422016 := qt422016.AcquireByteBuffer()
 	p.WriteBody(qb422016)
+	qs422016 := string(qb422016.B)
+	qt422016.ReleaseByteBuffer(qb422016)
+	return qs422016
+}
+
+func StreamRenderFeedRow(qw422016 *qt422016.Writer, id, name, url string) {
+	qw422016.N().S(`
+<tr id="feed-`)
+	qw422016.N().S(id)
+	qw422016.N().S(`" class="align-middle" hx-target="this" hx-swap="outerHTML">
+    <th id="feed-`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-name" scope="row">`)
+	qw422016.E().S(name)
+	qw422016.N().S(`</th>
+    <td id="feed-`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-url" >`)
+	qw422016.E().S(url)
+	qw422016.N().S(`</td>
+    <td>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+            <button type="button" class="btn btn-outline-primary" hx-get="`)
+	qw422016.N().S(urls.Expand(urls.EditFeedItem, id))
+	qw422016.N().S(`">
+                <i class="bi bi-pencil-square"></i>
+            </button>
+            <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    hx-delete="`)
+	qw422016.N().S(urls.Expand(urls.EditFeedItem, id))
+	qw422016.N().S(`"
+                    hx-confirm="This will permanently delete this item. Are you sure?"
+            >
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+`)
+}
+
+func WriteRenderFeedRow(qq422016 qtio422016.Writer, id, name, url string) {
+	qw422016 := qt422016.AcquireWriter(qq422016)
+	StreamRenderFeedRow(qw422016, id, name, url)
+	qt422016.ReleaseWriter(qw422016)
+}
+
+func RenderFeedRow(id, name, url string) string {
+	qb422016 := qt422016.AcquireByteBuffer()
+	WriteRenderFeedRow(qb422016, id, name, url)
+	qs422016 := string(qb422016.B)
+	qt422016.ReleaseByteBuffer(qb422016)
+	return qs422016
+}
+
+func StreamRenderFeedEditRow(qw422016 *qt422016.Writer, id, name, url string) {
+	qw422016.N().S(`
+<tr id="feed-`)
+	qw422016.N().S(id)
+	qw422016.N().S(`" class="align-middle" hx-target="this" hx-swap="outerHTML">
+    <th scope="row"><input
+            class="form-control form-control-sm"
+            type="text"
+            name="name"
+            id="feed-`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-name"
+            value="`)
+	qw422016.E().J(name)
+	qw422016.N().S(`"
+    ></th>
+    <td><input
+            class="form-control form-control-sm"
+            type="url"
+            name="url"
+            id="feed-`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-url"
+            value="`)
+	qw422016.E().J(url)
+	qw422016.N().S(`"
+    ></td>
+    <td>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+            <button
+                    type="button"
+                    class="btn btn-outline-success"
+                    hx-put="`)
+	qw422016.N().S(urls.Expand(urls.EditFeedItem, id))
+	qw422016.N().S(`"
+                    hx-include="#feed-`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-name, #feed-`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-url"
+            >
+                <i class="bi bi-check"></i>
+            </button>
+            <button type="button" class="btn btn-outline-danger" hx-get="`)
+	qw422016.N().S(urls.Expand(urls.CancelEditFeedItem, id))
+	qw422016.N().S(`"><i class="bi bi-x"></i></button>
+        </div>
+    </td>
+</tr>
+`)
+}
+
+func WriteRenderFeedEditRow(qq422016 qtio422016.Writer, id, name, url string) {
+	qw422016 := qt422016.AcquireWriter(qq422016)
+	StreamRenderFeedEditRow(qw422016, id, name, url)
+	qt422016.ReleaseWriter(qw422016)
+}
+
+func RenderFeedEditRow(id, name, url string) string {
+	qb422016 := qt422016.AcquireByteBuffer()
+	WriteRenderFeedEditRow(qb422016, id, name, url)
+	qs422016 := string(qb422016.B)
+	qt422016.ReleaseByteBuffer(qb422016)
+	return qs422016
+}
+
+func StreamRenderNewFeedItemRow(qw422016 *qt422016.Writer) {
+	qw422016.N().S(`
+`)
+	id := shortuuid.New()
+
+	qw422016.N().S(`
+<tr id="`)
+	qw422016.N().S(id)
+	qw422016.N().S(`" class="align-middle" hx-target="this" hx-swap="outerHTML">
+    <th scope="row"><input
+            id="`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-name-input"
+            class="form-control form-control-sm"
+            type="text"
+            name="name"
+            placeholder="Name"
+    ></th>
+    <td><input
+            id="`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-url-input"
+            class="form-control form-control-sm"
+            type="url"
+            name="url"
+            placeholder="URL"
+    ></td>
+    <td>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+            <button
+                    type="button"
+                    class="btn btn-outline-success"
+                    hx-post="`)
+	qw422016.N().S(urls.NewFeedItem)
+	qw422016.N().S(`"
+                    hx-include="#`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-name-input, #`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-url-input">
+                <i class="bi bi-check"></i>
+            </button>
+            <button type="button" class="btn btn-outline-danger" id="`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-cancel"><i class="bi bi-x"></i></button>
+        </div>
+    </td>
+
+    <script>
+        document.getElementById("`)
+	qw422016.N().S(id)
+	qw422016.N().S(`-cancel").addEventListener("click", function () {
+            document.getElementById("`)
+	qw422016.N().S(id)
+	qw422016.N().S(`").outerHTML = "";
+        });
+    </script>
+</tr>
+`)
+}
+
+func WriteRenderNewFeedItemRow(qq422016 qtio422016.Writer) {
+	qw422016 := qt422016.AcquireWriter(qq422016)
+	StreamRenderNewFeedItemRow(qw422016)
+	qt422016.ReleaseWriter(qw422016)
+}
+
+func RenderNewFeedItemRow() string {
+	qb422016 := qt422016.AcquireByteBuffer()
+	WriteRenderNewFeedItemRow(qb422016)
 	qs422016 := string(qb422016.B)
 	qt422016.ReleaseByteBuffer(qb422016)
 	return qs422016

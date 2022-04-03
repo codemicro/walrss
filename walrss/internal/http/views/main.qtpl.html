@@ -1,11 +1,13 @@
 {% import "github.com/codemicro/walrss/walrss/internal/db" %}
 {% import "github.com/codemicro/walrss/walrss/internal/urls" %}
+{% import "github.com/lithammer/shortuuid/v4" %}
 
 {% code type MainPage struct {
     BasePage
     EnableDigests bool
     SelectedDay db.SendDay
     SelectedTime int
+    Feeds []*db.Feed
 } %}
 
 {% func (p *MainPage) Title() %}{% endfunc %}
@@ -31,15 +33,19 @@
         new bootstrap.Toast(toast, {delay: delay}).show();
     }
 
-    function errorHandler() {
-        toastBody.innerText = "Internal error: action incomplete";
+    function errorHandler(text) {
+        toastBody.innerText = "Error: " + text;
         toast.classList.remove("bg-success")
         toast.classList.add("bg-danger")
         showToast(5000)
     }
 
-    document.body.addEventListener("htmx:sendError", errorHandler);
-    document.body.addEventListener("htmx:responseError", errorHandler);
+    document.body.addEventListener("htmx:sendError", function () {
+        errorHandler("could not communicate with server");
+    });
+    document.body.addEventListener("htmx:responseError", function (evt) {
+        errorHandler(evt.detail.xhr.response)
+    });
 
     document.body.addEventListener("successResponse", function () {
         toastBody.innerText = "Success!"
@@ -62,31 +68,28 @@
 
             <table class="table">
                 <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">First</th>
-                    <th scope="col">Last</th>
-                    <th scope="col">Handle</th>
-                </tr>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">URL</th>
+                        <th scope="col">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+                                <button
+                                        type="button"
+                                        class="btn btn-primary"
+                                        hx-get="{%s= urls.NewFeedItem %}"
+                                        hx-target="#feedListing"
+                                        hx-swap="beforeend"
+                                >
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                        </th>
+                    </tr>
                 </thead>
-                <tbody>
-                <tr>
-                    <th scope="row">1</th>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                </tr>
-                <tr>
-                    <th scope="row">2</th>
-                    <td>Jacob</td>
-                    <td>Thornton</td>
-                    <td>@fat</td>
-                </tr>
-                <tr>
-                    <th scope="row">3</th>
-                    <td colspan="2">Larry the Bird</td>
-                    <td>@twitter</td>
-                </tr>
+                <tbody id="feedListing">
+                    {% for _, feed := range p.Feeds %}
+                        {%= RenderFeedRow(feed.ID, feed.Name, feed.URL) %}
+                    {% endfor %}
                 </tbody>
             </table>
 
@@ -94,6 +97,98 @@
     </div>
 
 </div>
+{% endfunc %}
+
+{% func RenderFeedRow(id, name, url string) %}
+<tr id="feed-{%s= id %}" class="align-middle" hx-target="this" hx-swap="outerHTML">
+    <th id="feed-{%s= id %}-name" scope="row">{%s name %}</th>
+    <td id="feed-{%s= id %}-url" >{%s url %}</td>
+    <td>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+            <button type="button" class="btn btn-outline-primary" hx-get="{%s= urls.Expand(urls.EditFeedItem, id) %}">
+                <i class="bi bi-pencil-square"></i>
+            </button>
+            <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    hx-delete="{%s= urls.Expand(urls.EditFeedItem, id) %}"
+                    hx-confirm="This will permanently delete this item. Are you sure?"
+            >
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+{% endfunc %}
+
+{% func RenderFeedEditRow(id, name, url string) %}
+<tr id="feed-{%s= id %}" class="align-middle" hx-target="this" hx-swap="outerHTML">
+    <th scope="row"><input
+            class="form-control form-control-sm"
+            type="text"
+            name="name"
+            id="feed-{%s= id %}-name"
+            value="{%j name %}"
+    ></th>
+    <td><input
+            class="form-control form-control-sm"
+            type="url"
+            name="url"
+            id="feed-{%s= id %}-url"
+            value="{%j url %}"
+    ></td>
+    <td>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+            <button
+                    type="button"
+                    class="btn btn-outline-success"
+                    hx-put="{%s= urls.Expand(urls.EditFeedItem, id) %}"
+                    hx-include="#feed-{%s= id %}-name, #feed-{%s= id %}-url"
+            >
+                <i class="bi bi-check"></i>
+            </button>
+            <button type="button" class="btn btn-outline-danger" hx-get="{%s= urls.Expand(urls.CancelEditFeedItem, id) %}"><i class="bi bi-x"></i></button>
+        </div>
+    </td>
+</tr>
+{% endfunc %}
+
+{% func RenderNewFeedItemRow() %}
+{% code id := shortuuid.New() %}
+<tr id="{%s= id %}" class="align-middle" hx-target="this" hx-swap="outerHTML">
+    <th scope="row"><input
+            id="{%s= id %}-name-input"
+            class="form-control form-control-sm"
+            type="text"
+            name="name"
+            placeholder="Name"
+    ></th>
+    <td><input
+            id="{%s= id %}-url-input"
+            class="form-control form-control-sm"
+            type="url"
+            name="url"
+            placeholder="URL"
+    ></td>
+    <td>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+            <button
+                    type="button"
+                    class="btn btn-outline-success"
+                    hx-post="{%s= urls.NewFeedItem %}"
+                    hx-include="#{%s= id %}-name-input, #{%s= id %}-url-input">
+                <i class="bi bi-check"></i>
+            </button>
+            <button type="button" class="btn btn-outline-danger" id="{%s= id %}-cancel"><i class="bi bi-x"></i></button>
+        </div>
+    </td>
+
+    <script>
+        document.getElementById("{%s= id %}-cancel").addEventListener("click", function () {
+            document.getElementById("{%s= id %}").outerHTML = "";
+        });
+    </script>
+</tr>
 {% endfunc %}
 
 {% func (p *MainPage) RenderScheduleCard() %}

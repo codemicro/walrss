@@ -17,9 +17,15 @@ func (s *Server) mainPage(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	feeds, err := core.GetFeedsForUser(s.state, currentUserID)
+	if err != nil {
+		return err
+	}
+
 	return views.SendPage(ctx, &views.MainPage{
 		EnableDigests: user.Schedule.Active,
 		SelectedDay:   user.Schedule.Day,
 		SelectedTime:  user.Schedule.Hour,
+		Feeds:         feeds,
 	})
 }
