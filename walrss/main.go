@@ -39,7 +39,10 @@ func run() error {
 		return err
 	}
 
-	rss.ProcessFeeds(st, db.SendOnSunday, 21)
+	err = rss.ProcessFeeds(st, db.SendOnSunday, 21)
+	if err != nil {
+		return err
+	}
 
 	return server.Run()
 }

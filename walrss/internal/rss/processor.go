@@ -3,15 +3,17 @@ package rss
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/carlmjohnson/requests"
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/db"
 	"github.com/codemicro/walrss/walrss/internal/state"
+	"github.com/jordan-wright/email"
 	"github.com/matcornic/hermes"
 	"github.com/mmcdole/gofeed"
 	"github.com/patrickmn/go-cache"
-	"io/ioutil"
+	"net/smtp"
 	"sort"
 	"strings"
 	"sync"
@@ -30,10 +32,11 @@ type processedFeed struct {
 }
 
 func ProcessFeeds(st *state.State, day db.SendDay, hour int) error {
-	u, e := core.GetUsersBySchedule(st, day, hour)
+	u, err := core.GetUsersBySchedule(st, day, hour)
+	if err != nil {
+		return err
+	}
 	for _, ur := range u {
-		fmt.Printf("%#v\n", ur)
-
 		userFeeds, err := core.GetFeedsForUser(st, ur.ID)
 		if err != nil {
 			return err
@@ -49,17 +52,26 @@ func ProcessFeeds(st *state.State, day db.SendDay, hour int) error {
 			if err != nil {
 				pf.Error = err
 			} else {
+				// TODO: this interval is wack
 				pf.Items = filterFeedContent(rawFeed, time.Date(2022, 04, 01, 0, 0, 0, 0, time.UTC))
 			}
 			processedFeeds = append(processedFeeds, pf)
 		}
 
-		plainContent, htmlContent, err := generateEmail(processedFeeds)
+		plainContent, htmlContent, err := generateEmail(st, processedFeeds)
 		if err != nil {
 			return err
 		}
 
-		// TODO: Send email
+		if err := sendEmail(
+			st,
+			plainContent,
+			htmlContent,
+			ur.Email,
+			"RSS digest for "+strings.ToUpper(time.Now().UTC().Format(dateFormat)),
+		); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -118,7 +130,7 @@ func filterFeedContent(feed *gofeed.Feed, earliestPublishTime time.Time) []*feed
 	return o
 }
 
-func generateEmail(processedItems []*processedFeed) (plain, html []byte, err error) {
+func generateEmail(st *state.State, processedItems []*processedFeed) (plain, html []byte, err error) {
 	sort.Slice(processedItems, func(i, j int) bool {
 		pi, pj := processedItems[i], processedItems[j]
 
@@ -134,6 +146,13 @@ func generateEmail(processedItems []*processedFeed) (plain, html []byte, err err
 	})
 
 	var sb strings.Builder
+
+	sb.WriteString("Here are the updates to the feeds you're subscribed to that have been published since we " +
+		"last sent you a digest.\n\n")
+
+	if len(processedItems) == 0 {
+		sb.WriteString("*There's nothing to show here right now.*\n\n")
+	}
 
 	for _, processedItem := range processedItems {
 
@@ -165,11 +184,21 @@ func generateEmail(processedItems []*processedFeed) (plain, html []byte, err err
 
 	e := hermes.Email{
 		Body: hermes.Body{
+			Title:     "Hi there!",
+			Signature: "Have a good one",
+			Outros: []string{
+				"You can edit the feeds that you're subscribed to and your delivery settings here: " + st.Config.Server.ExternalURL,
+			},
 			FreeMarkdown: hermes.Markdown(sb.String()),
 		},
 	}
 
 	renderer := hermes.Hermes{
+		Product: hermes.Product{
+			Name:      "Walrss",
+			Link:      st.Config.Server.ExternalURL,
+			Copyright: ":)",
+		},
 		Theme: new(hermes.Flat),
 	}
 
@@ -184,4 +213,20 @@ func generateEmail(processedItems []*processedFeed) (plain, html []byte, err err
 	}
 
 	return []byte(plainString), []byte(htmlString), nil
+}
+
+func sendEmail(st *state.State, plain, html []byte, to, subject string) error {
+	return (&email.Email{
+		From:    st.Config.Email.From,
+		To:      []string{to},
+		Subject: subject,
+		Text:    plain,
+		HTML:    html,
+	}).SendWithStartTLS(
+		fmt.Sprintf("%s:%d", st.Config.Email.Host, st.Config.Email.Port),
+		smtp.PlainAuth("", st.Config.Email.Username, st.Config.Email.Password, st.Config.Email.Host),
+		&tls.Config{
+			ServerName: st.Config.Email.Host,
+		},
+	)
 }
