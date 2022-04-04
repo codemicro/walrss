@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/codemicro/walrss/walrss/internal/db"
 	"github.com/codemicro/walrss/walrss/internal/http"
+	"github.com/codemicro/walrss/walrss/internal/rss"
 	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/rs/zerolog/log"
 	"os"
@@ -37,6 +38,8 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
+	rss.ProcessFeeds(st, db.SendOnSunday, 21)
 
 	return server.Run()
 }

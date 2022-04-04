@@ -88,3 +88,28 @@ func UpdateUser(st *state.State, user *db.User) error {
 	}
 	return nil
 }
+
+func GetUsersBySchedule(st *state.State, day db.SendDay, hour int) ([]*db.User, error) {
+	// When trying to Or some queries, BH was weird, so it's easier to make two queries and combine them.
+	// This ensures that indexes are used.
+
+	var users []*db.User
+	if err := st.Data.Find(&users,
+		bh.Where("Schedule.Active").Eq(true).
+			And("Schedule.Day").Eq(day).
+			And("Schedule.Hour").Eq(hour),
+	); err != nil {
+		return nil, err
+	}
+
+	var users2 []*db.User
+	if err := st.Data.Find(&users2,
+		bh.Where("Schedule.Active").Eq(true).
+			And("Schedule.Day").Eq(db.SendDaily).
+			And("Schedule.Hour").Eq(hour),
+	); err != nil {
+		return nil, err
+	}
+
+	return append(users, users2...), nil
+}

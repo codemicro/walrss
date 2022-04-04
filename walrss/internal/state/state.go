@@ -19,6 +19,13 @@ func New() *State {
 }
 
 type Config struct {
+	//Email struct {
+	//	Host     string `fig:"host" validate:"required"`
+	//	Username string `fig:"username" validate:"required"`
+	//	Password string `fig:"password" validate:"required"`
+	//	From     string `fig:"from" validate:"required"`
+	//	Port     int    `fig:"port" validate:"required"`
+	//}
 	Server struct {
 		Host string `fig:"host" default:"127.0.0.1"`
 		Port int    `fig:"port" default:"8080"`

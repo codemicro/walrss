@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"strings"
+	"time"
 )
 
 type SendDay uint32
@@ -77,4 +78,12 @@ func (s *SendDay) UnmarshalText(x []byte) error {
 	}
 
 	return nil
+}
+
+func SendDayFromWeekday(w time.Weekday) SendDay {
+	s := new(SendDay)
+	if err := s.UnmarshalText([]byte(w.String())); err != nil {
+		panic(err)
+	}
+	return *s
 }

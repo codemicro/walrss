@@ -107,7 +107,7 @@ func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
 
             <table class="table">
                 <thead>
-                    <tr>
+                    <tr style="background: white; width: 100%; position: sticky; top: 0; border-bottom: black 1px solid;">
                         <th scope="col">Name</th>
                         <th scope="col">URL</th>
                         <th scope="col">
@@ -119,7 +119,7 @@ func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
 	qw422016.N().S(urls.NewFeedItem)
 	qw422016.N().S(`"
                                         hx-target="#feedListing"
-                                        hx-swap="beforeend"
+                                        hx-swap="beforeend show:bottom"
                                 >
                                     <i class="bi bi-plus"></i>
                                 </button>
@@ -217,7 +217,7 @@ func StreamRenderFeedEditRow(qw422016 *qt422016.Writer, id, name, url string) {
 	qw422016.N().S(`
 <tr id="feed-`)
 	qw422016.N().S(id)
-	qw422016.N().S(`" class="align-middle" hx-target="this" hx-swap="outerHTML">
+	qw422016.N().S(`" class="align-middle alert alert-warning" hx-target="this" hx-swap="outerHTML">
     <th scope="row"><input
             class="form-control form-control-sm"
             type="text"
@@ -287,20 +287,20 @@ func StreamRenderNewFeedItemRow(qw422016 *qt422016.Writer) {
 	qw422016.N().S(`
 <tr id="`)
 	qw422016.N().S(id)
-	qw422016.N().S(`" class="align-middle" hx-target="this" hx-swap="outerHTML">
+	qw422016.N().S(`" class="align-middle alert alert-warning" hx-target="this" hx-swap="outerHTML">
     <th scope="row"><input
-            id="`)
+            id="input-`)
 	qw422016.N().S(id)
-	qw422016.N().S(`-name-input"
+	qw422016.N().S(`-name"
             class="form-control form-control-sm"
             type="text"
             name="name"
             placeholder="Name"
     ></th>
     <td><input
-            id="`)
+            id="input-`)
 	qw422016.N().S(id)
-	qw422016.N().S(`-url-input"
+	qw422016.N().S(`-url"
             class="form-control form-control-sm"
             type="url"
             name="url"
@@ -314,11 +314,11 @@ func StreamRenderNewFeedItemRow(qw422016 *qt422016.Writer) {
                     hx-post="`)
 	qw422016.N().S(urls.NewFeedItem)
 	qw422016.N().S(`"
-                    hx-include="#`)
+                    hx-include="#input-`)
 	qw422016.N().S(id)
-	qw422016.N().S(`-name-input, #`)
+	qw422016.N().S(`-name, #input-`)
 	qw422016.N().S(id)
-	qw422016.N().S(`-url-input">
+	qw422016.N().S(`-url">
                 <i class="bi bi-check"></i>
             </button>
             <button type="button" class="btn btn-outline-danger" id="`)
