@@ -1,5 +1,3 @@
-{% import "github.com/codemicro/walrss/walrss/internal/urls" %}
-
 {% interface
 Page {
     Title()
@@ -71,7 +69,7 @@ Page prints a page implementing Page interface.
 PolyPage is used to create a basic page dynamically using Daz.
 {% code
 type PolyPage struct {
-    BasePageuuu
+    BasePage
     TitleString string
     BodyContent string
     ExtraHeadContent string

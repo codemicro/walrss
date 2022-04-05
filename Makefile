@@ -1,6 +1,6 @@
 .PHONY: prebuild fmt
 
-build: templates writeVersionNumber
+build: templates
 	mkdir -p bin
 	go build -o bin/walrss github.com/codemicro/walrss/walrss
 

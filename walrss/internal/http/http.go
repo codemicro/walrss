@@ -89,6 +89,8 @@ func (s *Server) registerHandlers() {
 	s.app.Get(urls.NewFeedItem, s.newFeedItem)
 	s.app.Post(urls.NewFeedItem, s.newFeedItem)
 
+	s.app.Post(urls.SendTestEmail, s.sendTestEmail)
+
 	s.app.Use(urls.Statics, static.NewHandler())
 }
 

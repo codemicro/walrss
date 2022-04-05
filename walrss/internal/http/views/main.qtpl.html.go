@@ -497,6 +497,10 @@ func (p *MainPage) StreamRenderScheduleCard(qw422016 *qt422016.Writer) {
             </div>
         </form>
 
+        <button class="mt-2 btn btn-primary btn-sm" hx-post="`)
+	qw422016.N().S(urls.SendTestEmail)
+	qw422016.N().S(`" hx-swap="none">Send test email</button>
+
     </div>
 </div>
 `)
