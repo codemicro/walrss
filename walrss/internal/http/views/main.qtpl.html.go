@@ -94,7 +94,7 @@ func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
     })
 </script>
 
-<div class="container pb-5">
+<div class="container">
     <h1>My settings</h1>
 
     `)

@@ -45,9 +45,7 @@ func StreamRenderPage(qw422016 *qt422016.Writer, p Page) {
     <link href="`)
 	qw422016.N().S(urls.Statics)
 	qw422016.N().S(`/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link rel="stylesheet" href="`)
-	qw422016.N().S(urls.Statics)
-	qw422016.N().S(`/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <script src="`)
 	qw422016.N().S(urls.Statics)
 	qw422016.N().S(`/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
@@ -75,6 +73,8 @@ func StreamRenderPage(qw422016 *qt422016.Writer, p Page) {
 `)
 	p.StreamBody(qw422016)
 	qw422016.N().S(`
+<div class="pb-5"></div>
+<p class="text-center text-secondary"><a href="https://github.com/codemicro/walrss" target="_blank" rel="noopener noreferrer">Walrss is open-source software</a> that's licensed under the <a href="https://github.com/codemicro/walrss/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">GNU AGPL v3.</a></p>
 </body>
 </html>
 `)
