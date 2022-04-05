@@ -32,6 +32,9 @@ type Config struct {
 		Port        int    `fig:"port" default:"8080"`
 		ExternalURL string `fig:"externalURL" validate:"required"`
 	}
+	Platform struct {
+		DisableRegistration bool `fig:"disableRegistration"`
+	}
 	Debug bool `fig:"debug"`
 }
 

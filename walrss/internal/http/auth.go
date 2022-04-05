@@ -6,10 +6,25 @@ import (
 	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
+	"github.com/stevelacy/daz"
 	"time"
 )
 
 func (s *Server) authRegister(ctx *fiber.Ctx) error {
+
+	if s.state.Config.Platform.DisableRegistration {
+		ctx.Status(fiber.StatusForbidden)
+		return views.SendPage(ctx, &views.PolyPage{
+			TitleString: "Site registration disabled",
+			BodyContent: daz.H("div",
+				daz.Attr{"class": "container alert alert-danger"},
+				"We're sorry - ",
+				daz.H("b", "this instance of Walrss has registrations disabled"),
+				". Please contact the operator of this Walrss instance with any queries.",
+			)(),
+		})
+	}
+
 	page := new(views.RegisterPage)
 
 	if getCurrentUserID(ctx) != "" {
