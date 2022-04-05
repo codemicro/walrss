@@ -24,10 +24,6 @@ func run() error {
 		st.Config = config
 	}
 
-	if err := os.Chdir(st.Config.DataDirectory); err != nil {
-		return err
-	}
-
 	store, err := db.New(dbFilename)
 	if err != nil {
 		return err

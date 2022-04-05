@@ -31,8 +31,7 @@ type Config struct {
 		Port        int    `fig:"port" default:"8080"`
 		ExternalURL string `fig:"externalURL" validate:"required"`
 	}
-	DataDirectory string `fig:"dataDir" default:"./"`
-	Debug         bool   `fig:"debug"`
+	Debug bool `fig:"debug"`
 }
 
 const configFilename = "config.yaml"
