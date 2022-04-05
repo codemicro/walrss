@@ -4,6 +4,7 @@ import (
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/state"
+	"github.com/codemicro/walrss/walrss/internal/static"
 	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
@@ -87,6 +88,8 @@ func (s *Server) registerHandlers() {
 
 	s.app.Get(urls.NewFeedItem, s.newFeedItem)
 	s.app.Post(urls.NewFeedItem, s.newFeedItem)
+
+	s.app.Use(urls.Statics, static.NewHandler())
 }
 
 func (s *Server) Run() error {

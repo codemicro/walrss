@@ -20,6 +20,8 @@ const (
 
 	New         = "/new"
 	NewFeedItem = New + "/feed"
+
+	Statics = "/statics"
 )
 
 func Expand(template string, replacements ...interface{}) string {
