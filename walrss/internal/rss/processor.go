@@ -13,6 +13,7 @@ import (
 	"github.com/matcornic/hermes"
 	"github.com/mmcdole/gofeed"
 	"github.com/patrickmn/go-cache"
+	"github.com/rs/zerolog/log"
 	"net/smtp"
 	"sort"
 	"strings"
@@ -36,53 +37,58 @@ func ProcessFeeds(st *state.State, day db.SendDay, hour int) error {
 	if err != nil {
 		return err
 	}
+
 	for _, ur := range u {
-		userFeeds, err := core.GetFeedsForUser(st, ur.ID)
-		if err != nil {
-			return err
-		}
-
-		var interval time.Duration
-		if ur.Schedule.Day == db.SendDaily {
-			interval = time.Hour * 24
-		} else {
-			interval = time.Hour * 24 * 7
-		}
-
-		var processedFeeds []*processedFeed
-
-		startTime := time.Now().UTC()
-
-		for _, f := range userFeeds {
-			pf := new(processedFeed)
-			pf.Name = f.Name
-
-			rawFeed, err := getFeedContent(f.URL)
-			if err != nil {
-				pf.Error = err
-			} else {
-				pf.Items = filterFeedContent(rawFeed, time.Now().UTC().Add(-interval))
-			}
-			processedFeeds = append(processedFeeds, pf)
-		}
-
-		plainContent, htmlContent, err := generateEmail(st, processedFeeds, interval, time.Now().UTC().Sub(startTime))
-		if err != nil {
-			return err
-		}
-
-		if err := sendEmail(
-			st,
-			plainContent,
-			htmlContent,
-			ur.Email,
-			"RSS digest for "+time.Now().UTC().Format(dateFormat),
-		); err != nil {
-			return err
+		if err := ProcessUserFeed(st, ur); err != nil {
+			log.Warn().Err(err).Str("user", ur.ID).Msg("could not process feeds for user")
 		}
 	}
 
 	return nil
+}
+
+func ProcessUserFeed(st *state.State, user *db.User) error {
+	userFeeds, err := core.GetFeedsForUser(st, user.ID)
+	if err != nil {
+		return err
+	}
+
+	var interval time.Duration
+	if user.Schedule.Day == db.SendDaily {
+		interval = time.Hour * 24
+	} else {
+		interval = time.Hour * 24 * 7
+	}
+
+	var processedFeeds []*processedFeed
+
+	startTime := time.Now().UTC()
+
+	for _, f := range userFeeds {
+		pf := new(processedFeed)
+		pf.Name = f.Name
+
+		rawFeed, err := getFeedContent(f.URL)
+		if err != nil {
+			pf.Error = err
+		} else {
+			pf.Items = filterFeedContent(rawFeed, time.Now().UTC().Add(-interval))
+		}
+		processedFeeds = append(processedFeeds, pf)
+	}
+
+	plainContent, htmlContent, err := generateEmail(st, processedFeeds, interval, time.Now().UTC().Sub(startTime))
+	if err != nil {
+		return err
+	}
+
+	return sendEmail(
+		st,
+		plainContent,
+		htmlContent,
+		user.Email,
+		"RSS digest for "+time.Now().UTC().Format(dateFormat),
+	)
 }
 
 var (
@@ -212,7 +218,7 @@ func generateEmail(st *state.State, processedItems []*processedFeed, interval, t
 		Product: hermes.Product{
 			Name:      "Walrss",
 			Link:      st.Config.Server.ExternalURL,
-			Copyright: fmt.Sprintf("This email was generated in %.2f seconds by Walrss v%s.\nhttps://github.com/codemicro/walrss", timeToGenerate.Seconds(), state.Version),
+			Copyright: fmt.Sprintf("This email was generated in %.2f seconds by Walrss %s.", timeToGenerate.Seconds(), state.Version),
 		},
 		Theme: new(hermes.Flat),
 	}
