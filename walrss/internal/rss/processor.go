@@ -220,7 +220,7 @@ func generateEmail(st *state.State, processedItems []*processedFeed, interval, t
 			Name:      "Walrss",
 			Link:      st.Config.Server.ExternalURL,
 			Logo:      st.Config.Server.ExternalURL + urls.Statics + "/logo_light.png",
-			Copyright: fmt.Sprintf("This email was generated in %.2f seconds by Walrss %s.", timeToGenerate.Seconds(), state.Version),
+			Copyright: fmt.Sprintf("This email was generated in %.2f seconds by Walrss - Walrss is open source software licensed under the GNU AGPL v3 - https://github.com/codemicro/walrss", timeToGenerate.Seconds()),
 		},
 		Theme: new(hermes.Flat),
 	}
