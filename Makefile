@@ -1,6 +1,6 @@
 .PHONY: prebuild fmt
 
-build: templates
+build: templates writeVersionNumber
 	mkdir -p bin
 	go build -o bin/walrss github.com/codemicro/walrss/walrss
 
@@ -13,3 +13,6 @@ fmt:
 
 templates:
 	qtc -skipLineComments -ext qtpl.html -dir walrss/internal/http/views
+
+writeVersionNumber:
+	bash ./writeVersionNumber.sh

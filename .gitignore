@@ -25,3 +25,4 @@
 
 run/
 bin/
+walrss/internal/state/version.go

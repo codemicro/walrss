@@ -42,7 +42,16 @@ func ProcessFeeds(st *state.State, day db.SendDay, hour int) error {
 			return err
 		}
 
+		var interval time.Duration
+		if ur.Schedule.Day == db.SendDaily {
+			interval = time.Hour * 24
+		} else {
+			interval = time.Hour * 24 * 7
+		}
+
 		var processedFeeds []*processedFeed
+
+		startTime := time.Now().UTC()
 
 		for _, f := range userFeeds {
 			pf := new(processedFeed)
@@ -52,13 +61,12 @@ func ProcessFeeds(st *state.State, day db.SendDay, hour int) error {
 			if err != nil {
 				pf.Error = err
 			} else {
-				// TODO: this interval is wack
-				pf.Items = filterFeedContent(rawFeed, time.Date(2022, 04, 01, 0, 0, 0, 0, time.UTC))
+				pf.Items = filterFeedContent(rawFeed, time.Now().UTC().Add(-interval))
 			}
 			processedFeeds = append(processedFeeds, pf)
 		}
 
-		plainContent, htmlContent, err := generateEmail(st, processedFeeds)
+		plainContent, htmlContent, err := generateEmail(st, processedFeeds, interval, time.Now().UTC().Sub(startTime))
 		if err != nil {
 			return err
 		}
@@ -130,7 +138,7 @@ func filterFeedContent(feed *gofeed.Feed, earliestPublishTime time.Time) []*feed
 	return o
 }
 
-func generateEmail(st *state.State, processedItems []*processedFeed) (plain, html []byte, err error) {
+func generateEmail(st *state.State, processedItems []*processedFeed, interval, timeToGenerate time.Duration) (plain, html []byte, err error) {
 	sort.Slice(processedItems, func(i, j int) bool {
 		pi, pj := processedItems[i], processedItems[j]
 
@@ -147,8 +155,15 @@ func generateEmail(st *state.State, processedItems []*processedFeed) (plain, htm
 
 	var sb strings.Builder
 
-	sb.WriteString("Here are the updates to the feeds you're subscribed to that have been published since we " +
-		"last sent you a digest.\n\n")
+	sb.WriteString("Here are the updates to the feeds you're subscribed to that have been published in the last ")
+
+	if interval.Hours() == 24 {
+		sb.WriteString("24 hours")
+	} else {
+		sb.WriteString(fmt.Sprintf("%.0f days", interval.Hours()/24))
+	}
+
+	sb.WriteString(".\n\n")
 
 	if len(processedItems) == 0 {
 		sb.WriteString("*There's nothing to show here right now.*\n\n")
@@ -197,7 +212,7 @@ func generateEmail(st *state.State, processedItems []*processedFeed) (plain, htm
 		Product: hermes.Product{
 			Name:      "Walrss",
 			Link:      st.Config.Server.ExternalURL,
-			Copyright: ":)",
+			Copyright: fmt.Sprintf("This email was generated in %.2f seconds by Walrss v%s.\nhttps://github.com/codemicro/walrss", timeToGenerate.Seconds(), state.Version),
 		},
 		Theme: new(hermes.Flat),
 	}
