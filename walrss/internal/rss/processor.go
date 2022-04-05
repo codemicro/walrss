@@ -9,6 +9,7 @@ import (
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/db"
 	"github.com/codemicro/walrss/walrss/internal/state"
+	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/jordan-wright/email"
 	"github.com/matcornic/hermes"
 	"github.com/mmcdole/gofeed"
@@ -218,6 +219,7 @@ func generateEmail(st *state.State, processedItems []*processedFeed, interval, t
 		Product: hermes.Product{
 			Name:      "Walrss",
 			Link:      st.Config.Server.ExternalURL,
+			Logo:      st.Config.Server.ExternalURL + urls.Statics + "/logo_light.png",
 			Copyright: fmt.Sprintf("This email was generated in %.2f seconds by Walrss %s.", timeToGenerate.Seconds(), state.Version),
 		},
 		Theme: new(hermes.Flat),

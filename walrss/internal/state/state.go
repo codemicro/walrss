@@ -7,6 +7,7 @@ import (
 	bh "github.com/timshannon/bolthold"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 type State struct {
@@ -53,6 +54,9 @@ func LoadConfig() (*Config, error) {
 	if err := fig.Load(cfg); err != nil {
 		return nil, err
 	}
+
+	cfg.Server.ExternalURL = strings.TrimSuffix(cfg.Server.ExternalURL, "/")
+
 	return cfg, nil
 }
 
