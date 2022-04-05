@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	dateFormat = "02Jan06"
+	dateFormat = "02JAN06"
 	timeFormat = "15:04:05"
 )
 
@@ -76,7 +76,7 @@ func ProcessFeeds(st *state.State, day db.SendDay, hour int) error {
 			plainContent,
 			htmlContent,
 			ur.Email,
-			"RSS digest for "+strings.ToUpper(time.Now().UTC().Format(dateFormat)),
+			"RSS digest for "+time.Now().UTC().Format(dateFormat),
 		); err != nil {
 			return err
 		}
@@ -190,7 +190,7 @@ func generateEmail(st *state.State, processedItems []*processedFeed, interval, t
 				sb.WriteString("**](")
 				sb.WriteString(item.URL)
 				sb.WriteString(") - ")
-				sb.WriteString(strings.ToUpper(item.PublishTime.Format(dateFormat + " " + timeFormat)))
+				sb.WriteString(item.PublishTime.Format(dateFormat + " " + timeFormat))
 				sb.WriteString("\n")
 			}
 
