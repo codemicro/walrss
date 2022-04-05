@@ -111,7 +111,7 @@ func (s *Server) authSignIn(ctx *fiber.Ctx) error {
 			Name:     sessionCookieKey,
 			Value:    token,
 			Expires:  time.Now().UTC().Add(sessionDuration),
-			Secure:   !s.state.Config.Debug,
+			Secure:   s.state.Config.EnableSecureCookies(),
 			HTTPOnly: true,
 		})
 

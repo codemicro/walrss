@@ -37,6 +37,8 @@ func run() error {
 
 	rss.StartWatcher(st)
 
+	log.Info().Msg("starting server on " + st.Config.GetHTTPAddress())
+
 	return server.Run()
 }
 

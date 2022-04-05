@@ -33,7 +33,8 @@ type Config struct {
 		ExternalURL string `fig:"externalURL" validate:"required"`
 	}
 	Platform struct {
-		DisableRegistration bool `fig:"disableRegistration"`
+		DisableRegistration  bool `fig:"disableRegistration"`
+		DisableSecureCookies bool `fig:"disableSecureCookies"`
 	}
 	Debug bool `fig:"debug"`
 }
@@ -65,4 +66,12 @@ func LoadConfig() (*Config, error) {
 
 func (cfg *Config) GetHTTPAddress() string {
 	return fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+}
+
+func (cfg *Config) EnableSecureCookies() bool {
+	enableSecureCookies := true
+	if !cfg.Debug {
+		enableSecureCookies = !cfg.Platform.DisableSecureCookies
+	}
+	return enableSecureCookies
 }
