@@ -60,10 +60,8 @@ func New(st *state.State) (*Server, error) {
 func (s *Server) registerHandlers() {
 	s.app.Use(func(ctx *fiber.Ctx) error {
 		if token := ctx.Cookies(sessionCookieKey); token != "" {
-			log.Debug().Msgf("cookie %s=%s", sessionCookieKey, token)
 			userID, createdAt, err := core.ValidateSessionToken(token)
 			if err == nil && time.Now().Sub(createdAt) < sessionDuration {
-				log.Debug().Msg("session valid")
 				ctx.Locals(userIDLocalKey, userID)
 			}
 		}

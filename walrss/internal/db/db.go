@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	bh "github.com/timshannon/bolthold"
+	"strings"
 )
 
 func New(filename string) (*bh.Store, error) {
@@ -34,4 +35,18 @@ type Feed struct {
 	URL    string
 	Name   string
 	UserID string `boldholdIndex:"UserID"`
+}
+
+type FeedSlice []*Feed
+
+func (f FeedSlice) Len() int {
+	return len(f)
+}
+
+func (f FeedSlice) Less(i, j int) bool {
+	return strings.ToLower(f[i].Name) < strings.ToLower(f[j].Name)
+}
+
+func (f FeedSlice) Swap(i, j int) {
+	f[i], f[j] = f[j], f[i]
 }

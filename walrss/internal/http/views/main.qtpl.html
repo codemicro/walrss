@@ -1,5 +1,6 @@
 {% import "github.com/codemicro/walrss/walrss/internal/db" %}
 {% import "github.com/codemicro/walrss/walrss/internal/urls" %}
+{% import "sort" %}
 {% import "github.com/lithammer/shortuuid/v4" %}
 
 {% code type MainPage struct {
@@ -7,7 +8,7 @@
     EnableDigests bool
     SelectedDay db.SendDay
     SelectedTime int
-    Feeds []*db.Feed
+    Feeds db.FeedSlice
 } %}
 
 {% func (p *MainPage) Title() %}{% endfunc %}
@@ -55,7 +56,7 @@
     })
 </script>
 
-<div class="container">
+<div class="container pb-5">
     <h1>My settings</h1>
 
     {%= p.RenderScheduleCard() %}
@@ -87,6 +88,7 @@
                     </tr>
                 </thead>
                 <tbody id="feedListing">
+                    {% code sort.Sort(p.Feeds) %}
                     {% for _, feed := range p.Feeds %}
                         {%= RenderFeedRow(feed.ID, feed.Name, feed.URL) %}
                     {% endfor %}

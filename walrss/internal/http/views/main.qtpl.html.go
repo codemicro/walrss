@@ -7,6 +7,8 @@ import "github.com/codemicro/walrss/walrss/internal/db"
 
 import "github.com/codemicro/walrss/walrss/internal/urls"
 
+import "sort"
+
 import "github.com/lithammer/shortuuid/v4"
 
 import (
@@ -25,7 +27,7 @@ type MainPage struct {
 	EnableDigests bool
 	SelectedDay   db.SendDay
 	SelectedTime  int
-	Feeds         []*db.Feed
+	Feeds         db.FeedSlice
 }
 
 func (p *MainPage) StreamTitle(qw422016 *qt422016.Writer) {
@@ -92,7 +94,7 @@ func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
     })
 </script>
 
-<div class="container">
+<div class="container pb-5">
     <h1>My settings</h1>
 
     `)
@@ -128,6 +130,10 @@ func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
                     </tr>
                 </thead>
                 <tbody id="feedListing">
+                    `)
+	sort.Sort(p.Feeds)
+
+	qw422016.N().S(`
                     `)
 	for _, feed := range p.Feeds {
 		qw422016.N().S(`
