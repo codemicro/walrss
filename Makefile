@@ -13,6 +13,3 @@ fmt:
 
 templates:
 	qtc -skipLineComments -ext qtpl.html -dir walrss/internal/http/views
-
-writeVersionNumber:
-	bash ./writeVersionNumber.sh
