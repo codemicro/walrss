@@ -6,9 +6,9 @@
 
 ---
 
-![Sample email](.github/screenshots/sampleEmail.png)
-
-![Web UI](.github/screenshots/webUI.png)
+| Email                                                | Web UI                                   |
+|------------------------------------------------------|------------------------------------------|
+| ![Sample email](.github/screenshots/sampleEmail.png) | ![Web UI](.github/screenshots/webUI.png) |
 
 ## Quickstart
 
