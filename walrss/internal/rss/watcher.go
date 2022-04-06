@@ -10,13 +10,21 @@ import (
 func StartWatcher(st *state.State) {
 	go func() {
 		currentTime := time.Now().UTC()
-		time.Sleep(time.Minute * time.Duration(60-currentTime.Minute()))
+		
+		timeUntilNextHour := time.Minute * time.Duration(60 - currentTime.Minute())
+		timeUntilNextHour += 30 * time.Second // little bit of buffer time to
+		// make sure we're actually going to be within in the new hour
+		
+		time.Sleep(timeUntilNextHour)
 
 		runFeedProcessor(st, currentTime)
 
 		ticker := time.NewTicker(time.Hour)
-		for currentTime := range ticker.C {
-			runFeedProcessor(st, currentTime)
+		for range ticker.C {
+			// Yes, I am aware that you can get the current time from ticker.C
+			// BUT that's been weird and caused some issues resulting in an
+			// hour's task not being run, so I'm not using it
+			runFeedProcessor(st, time.Now().UTC())
 		}
 	}()
 }
