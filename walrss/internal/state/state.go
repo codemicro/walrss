@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kkyr/fig"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	bh "github.com/timshannon/bolthold"
 	"io/ioutil"
 	"os"
@@ -60,6 +62,10 @@ func LoadConfig() (*Config, error) {
 	}
 
 	cfg.Server.ExternalURL = strings.TrimSuffix(cfg.Server.ExternalURL, "/")
+
+	if !cfg.Debug {
+		log.Logger = log.Logger.Level(zerolog.InfoLevel)
+	}
 
 	return cfg, nil
 }
