@@ -135,7 +135,7 @@ func filterFeedContent(feed *gofeed.Feed, earliestPublishTime time.Time) []*feed
 	for _, item := range feed.Items {
 		if item.PublishedParsed != nil && item.PublishedParsed.After(earliestPublishTime) {
 			o = append(o, &feedItem{
-				Title:       item.Title,
+				Title:       strings.TrimSpace(item.Title),
 				URL:         item.Link,
 				PublishTime: *item.PublishedParsed,
 			})
