@@ -10,9 +10,7 @@ import (
 func StartWatcher(st *state.State) {
 	log.Debug().Str("location", "feed watcher").Msg("starting feed watcher")
 	go func() {
-		currentTime := time.Now().UTC()
-
-		timeUntilNextHour := time.Minute * time.Duration(60-currentTime.Minute())
+		timeUntilNextHour := time.Minute * time.Duration(60-time.Now().UTC().Minute())
 		timeUntilNextHour += 30 * time.Second // little bit of buffer time to
 		// make sure we're actually going to be within in the new hour
 
@@ -20,7 +18,7 @@ func StartWatcher(st *state.State) {
 
 		time.Sleep(timeUntilNextHour)
 
-		runFeedProcessor(st, currentTime)
+		runFeedProcessor(st, time.Now().UTC())
 
 		log.Debug().Str("location", "feed watcher").Msg("starting ticker")
 
