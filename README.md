@@ -8,14 +8,16 @@
 
 ![Web UI](.github/screenshots/webUI.png)
 
-## Quickstart: Docker
+## Quickstart
+
+### Docker
 
 ```bash
 docker pull ghcr.io/codemicro/walrss:latest
 docker run -d -v $(pwd)/walrss-data:/run -p 8080:8080 ghcr.io/codemicro/walrss:latest
 ```
 
-## Quickstart: Build from source
+### Build from source
 
 You must have an up-to-date version of the Go toolchain installed. Check `go.mod` for the minimum required version.
 
@@ -27,11 +29,12 @@ go build github.com/codemicro/walrss/walrss
 ```bash
 mkdir walrss-data
 WALRSS_DIR="./walrss-data" ./walrss
+# now go to http://127.0.0.1:8080
 ```
 
 ## Config
 
-Your `config.yaml` file lives in your data directory, which is specified by the `WALRSS_DIR` environment variable (default is `./`).
+Your `config.yaml` file lives in your data directory, which is specified by the `WALRSS_DIR` environment variable (default is `./`). Below is a list of the possible options you can set within it.
 
 ```yaml
 server:
