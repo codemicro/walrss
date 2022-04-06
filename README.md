@@ -34,7 +34,7 @@ WALRSS_DIR="./walrss-data" ./walrss
 
 ## Config
 
-Your `config.yaml` file lives in your data directory, which is specified by the `WALRSS_DIR` environment variable (default is `./`). Below is a list of the possible options you can set within it.
+Your `config.yaml` file lives in your data directory, which is specified by the `WALRSS_DIR` environment variable (default is `./` or `/run` if you're using Docker). Below is a list of the possible options you can set within it.
 
 ```yaml
 server:
