@@ -2,6 +2,8 @@
 
 *Email-based RSS digest generator*
 
+![RSS is cool](https://img.shields.io/badge/rss-is%20cool-orange?logo=rss) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/codemicro/walrss) [![Go Report Card](https://goreportcard.com/badge/github.com/codemicro/walrss)](https://goreportcard.com/report/github.com/codemicro/walrss) ![Lines of code](https://img.shields.io/tokei/lines/github/codemicro/walrss)
+
 ---
 
 ![Sample email](.github/screenshots/sampleEmail.png)
