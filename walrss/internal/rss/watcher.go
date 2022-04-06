@@ -8,16 +8,21 @@ import (
 )
 
 func StartWatcher(st *state.State) {
+	log.Debug().Str("location", "feed watcher").Msg("starting feed watcher")
 	go func() {
 		currentTime := time.Now().UTC()
-		
-		timeUntilNextHour := time.Minute * time.Duration(60 - currentTime.Minute())
+
+		timeUntilNextHour := time.Minute * time.Duration(60-currentTime.Minute())
 		timeUntilNextHour += 30 * time.Second // little bit of buffer time to
 		// make sure we're actually going to be within in the new hour
-		
+
+		log.Debug().Str("location", "feed watcher").Msgf("waiting %.2f minutes before starting ticker", timeUntilNextHour.Minutes())
+
 		time.Sleep(timeUntilNextHour)
 
 		runFeedProcessor(st, currentTime)
+
+		log.Debug().Str("location", "feed watcher").Msg("starting ticker")
 
 		ticker := time.NewTicker(time.Hour)
 		for range ticker.C {
@@ -31,7 +36,7 @@ func StartWatcher(st *state.State) {
 
 func runFeedProcessor(st *state.State, currentTime time.Time) {
 	currentTime = currentTime.UTC()
-	log.Info().
+	log.Debug().
 		Str("location", "feed watcher").
 		Str("day", db.SendDayFromWeekday(currentTime.Weekday()).String()).
 		Int("hour", currentTime.Hour()).
