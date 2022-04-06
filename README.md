@@ -57,3 +57,8 @@ platform:
   disableRegistration: false
   disableSecureCookies: false
 ```
+
+## Future features
+
+* Feed categories
+* Administrator users
