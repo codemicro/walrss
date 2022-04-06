@@ -23,7 +23,7 @@ func StartWatcher(st *state.State) {
 
 func runFeedProcessor(st *state.State, currentTime time.Time) {
 	log.Info().Str("location", "feed watcher").Msg("running hourly job")
-	if err := ProcessFeeds(st, db.SendDayFromWeekday(currentTime.Weekday()), currentTime.Hour()+1); err != nil {
+	if err := ProcessFeeds(st, db.SendDayFromWeekday(currentTime.Weekday()), currentTime.Hour()); err != nil {
 		log.Error().Err(err).Str("location", "feed watcher").Send()
 	}
 }
