@@ -63,3 +63,4 @@ platform:
 * OPML import/export
 * Feed categories
 * Administrator users
+* Account controls (eg password reset, change password, etc)
