@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"github.com/codemicro/walrss/walrss/internal/core/opml"
 	"github.com/codemicro/walrss/walrss/internal/db"
 	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/lithammer/shortuuid/v4"
@@ -73,4 +74,16 @@ func UpdateFeed(st *state.State, feed *db.Feed) error {
 		return err
 	}
 	return nil
+}
+
+func ExportFeedsForUser(st *state.State, userID string) ([]byte, error) {
+	var feeds []*db.Feed
+	user, err := GetUserByID(st, userID)
+	if err != nil {
+		return nil, err
+	}
+	if err := st.Data.Find(&feeds, bh.Where("UserID").Eq(userID)); err != nil {
+		return nil, err
+	}
+	return opml.FromFeeds(feeds, user.Email).ToBytes()
 }

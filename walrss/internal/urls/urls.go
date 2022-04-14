@@ -18,6 +18,9 @@ const (
 	EditFeedItem       = Edit + "/feed/:id"
 	CancelEditFeedItem = Edit + "/feed/:id/cancel"
 
+	Export       = "/export"
+	ExportAsOPML = Export + "/opml"
+
 	New         = "/new"
 	NewFeedItem = New + "/feed"
 
