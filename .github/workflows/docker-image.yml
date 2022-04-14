@@ -1,0 +1,34 @@
+name: Docker Image CI
+
+on:
+  release:
+    types: [published]
+
+env:
+  IMAGE_NAME: "ghcr.io/codemicro/walrss"
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Get tag version
+      id: get_version
+      run: echo ::set-output name=VERSION::$(echo ${GITHUB_REF/refs\/tags\//} | sed sed "s/^v//")
+      
+    - name: Make image tags
+      id: make_tags
+      run: echo ::set-output name=LATEST::$IMAGE_NAME:latest name=VERSIONED::$IMAGE_NAME:${{ steps.get_version.outputs.VERSION }}
+      
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${{ steps.make_tags.outputs.LATEST }} --tag ${{ steps.make_tags.outputs.VERSIONED }}
+      
+    - name: Login to ghcr.io
+      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io --username codemicro --password-stdin
+      
+    - name: Push image
+      run: docker push --all-tags $IMAGE_NAME
