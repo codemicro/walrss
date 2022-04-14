@@ -22,9 +22,11 @@ jobs:
       
     - name: Make image tags
       id: make_tags
-      run: echo ::set-output name=LATEST::$IMAGE_NAME:latest name=VERSIONED::$IMAGE_NAME:${{ steps.get_version.outputs.VERSION }}
+      run: |
+        echo "::set-output name=LATEST::$IMAGE_NAME:latest"
+        echo "::set-output name=VERSIONED::$IMAGE_NAME:${{ steps.get_version.outputs.VERSION }}"
       
-    - name: Build the Docker image
+    - name: Build Docker image
       run: docker build . --file Dockerfile --tag ${{ steps.make_tags.outputs.LATEST }} --tag ${{ steps.make_tags.outputs.VERSIONED }}
       
     - name: Login to ghcr.io
