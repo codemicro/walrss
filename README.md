@@ -60,5 +60,6 @@ platform:
 
 ## Future features
 
+* OPML import/export
 * Feed categories
 * Administrator users
