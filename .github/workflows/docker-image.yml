@@ -18,7 +18,7 @@ jobs:
     
     - name: Get tag version
       id: get_version
-      run: echo ::set-output name=VERSION::$(echo ${GITHUB_REF/refs\/tags\//} | sed sed "s/^v//")
+      run: echo "::set-output name=VERSION::$(echo ${GITHUB_REF/refs\/tags\//} | sed "s/^v//")"
       
     - name: Make image tags
       id: make_tags
