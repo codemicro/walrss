@@ -16,6 +16,8 @@
 
 ```bash
 docker pull ghcr.io/codemicro/walrss:latest
+mkdir walrss-data
+nano walrss-data/config.yaml  # You'll have to fill in the required fields detailed below
 docker run -d -v $(pwd)/walrss-data:/run -p 8080:8080 ghcr.io/codemicro/walrss:latest
 ```
 
@@ -25,12 +27,13 @@ You must have an up-to-date version of the Go toolchain installed. Check `go.mod
 
 ```bash
 git clone https://github.com/codemicro/walrss.git; cd walrss
-go build github.com/codemicro/walrss/walrss
+go build -o walrssServer github.com/codemicro/walrss/walrss
 ```
 
 ```bash
 mkdir walrss-data
-WALRSS_DIR="./walrss-data" ./walrss
+nano walrss-data/config.yaml  # You'll have to fill in the required fields detailed below
+WALRSS_DIR="./walrss-data" ./walrssServer
 # now go to http://127.0.0.1:8080
 ```
 
@@ -60,5 +63,7 @@ platform:
 
 ## Future features
 
+* OPML import/export
 * Feed categories
 * Administrator users
+* Account controls (eg password reset, change password, etc)
