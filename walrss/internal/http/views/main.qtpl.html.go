@@ -149,6 +149,57 @@ func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
         </div>
     </div>
 
+    <div class="card mt-3">
+        <div class="card-header">
+            Import/export
+        </div>
+        <div class="card-body">
+
+            <div class="row row-cols-lg-auto g-3 align-items-center">
+
+                <div class="col-12">
+                    <a href="`)
+	qw422016.N().S(urls.ExportAsOPML)
+	qw422016.N().S(`" class="btn btn-sm btn-primary" target="_blank">Export (OPML)</a>
+                </div>
+
+                <div class="col-12">
+                    <button class="btn btn-sm btn-primary" id="importOPMLButton">
+                        Import (OPML)
+                    </button>
+
+                    <form id="importForm" style="display: none;" hx-trigger="submitImportForm" hx-indicator="importOPMLIndicator" hx-encoding='multipart/form-data' hx-post="`)
+	qw422016.N().S(urls.ImportFromOPML)
+	qw422016.N().S(`">
+                        <input type="file" name="file" id="fileUploadBox">
+                    </form>
+                </div>
+
+                <div class="col-12">
+                    <div class="spinner-border align-middle request-indicator" id="importOPMLIndicator" style="width: 2rem; height: 2rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <script>
+                const selectFileButton = document.getElementById("importOPMLButton");
+                const fileUploadBox = document.getElementById("fileUploadBox");
+                const importForm = document.getElementById("importForm");
+
+                selectFileButton.addEventListener("click", function () {
+                    fileUploadBox.click();
+                });
+
+                fileUploadBox.addEventListener("change", function () {
+                    importForm.dispatchEvent(new Event("submitImportForm"));
+                });
+            </script>
+
+        </div>
+    </div>
+
 </div>
 `)
 }
