@@ -75,9 +75,8 @@ func (cfg *Config) GetHTTPAddress() string {
 }
 
 func (cfg *Config) EnableSecureCookies() bool {
-	enableSecureCookies := true
-	if !cfg.Debug {
-		enableSecureCookies = !cfg.Platform.DisableSecureCookies
+	if cfg.Debug {
+		return false
 	}
-	return enableSecureCookies
+	return !cfg.Platform.DisableSecureCookies
 }
