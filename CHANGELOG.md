@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 ### Added
-* Support for OPML exports
+* Support for OPML imports and exports
 
 ## [0.1.0] - 2022-04-14
 Initial release

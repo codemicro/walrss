@@ -87,3 +87,36 @@ func ExportFeedsForUser(st *state.State, userID string) ([]byte, error) {
 	}
 	return opml.FromFeeds(feeds, user.Email).ToBytes()
 }
+
+func ImportFeedsForUser(st *state.State, userID string, opmlXML []byte) error {
+	o, err := opml.FromBytes(opmlXML)
+	if err != nil {
+		return AsUserError(400, err)
+	}
+
+	// This will be used to filter out feeds included in OPML that would cause
+	// duplicates
+	existingURLs := make(map[string]struct{})
+	{
+		feeds, err := GetFeedsForUser(st, userID)
+		if err != nil {
+			return err
+		}
+		for _, feed := range feeds {
+			if _, found := existingURLs[feed.URL]; !found {
+				existingURLs[feed.URL] = struct{}{}
+			}
+		}
+	}
+
+	for _, feed := range o.ToFeeds() {
+		if _, found := existingURLs[feed.URL]; found {
+			continue
+		}
+		if _, err := NewFeed(st, userID, feed.Name, feed.URL); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

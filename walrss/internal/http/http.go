@@ -92,6 +92,7 @@ func (s *Server) registerHandlers() {
 	s.app.Post(urls.SendTestEmail, s.sendTestEmail)
 
 	s.app.Get(urls.ExportAsOPML, s.exportAsOPML)
+	s.app.Post(urls.ImportFromOPML, s.importFromOPML)
 
 	s.app.Use(urls.Statics, static.NewHandler())
 }

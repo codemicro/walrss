@@ -21,6 +21,9 @@ const (
 	Export       = "/export"
 	ExportAsOPML = Export + "/opml"
 
+	Import         = "/import"
+	ImportFromOPML = Import + "/opml"
+
 	New         = "/new"
 	NewFeedItem = New + "/feed"
 

@@ -3,6 +3,8 @@ package opml
 import (
 	"encoding/xml"
 	"github.com/codemicro/walrss/walrss/internal/db"
+	"github.com/lithammer/shortuuid/v4"
+	"strings"
 	"time"
 )
 
@@ -19,25 +21,12 @@ type OPML struct {
 	} `xml:"body"`
 }
 
-// Outline holds all information about an outline.
-type Outline struct {
-	Outlines []*Outline `xml:"outline"`
-	Text     string     `xml:"text,attr"`
-	Title    string     `xml:"title,attr,omitempty"`
-	Type     string     `xml:"type,attr,omitempty"`
-	XMLURL   string     `xml:"xmlUrl,attr,omitempty"`
-}
-
 func FromBytes(x []byte) (*OPML, error) {
 	o := new(OPML)
 	if err := xml.Unmarshal(x, o); err != nil {
 		return nil, err
 	}
 	return o, nil
-}
-
-func (o *OPML) ToBytes() ([]byte, error) {
-	return xml.Marshal(o)
 }
 
 func FromFeeds(feeds []*db.Feed, userEmailAddress string) *OPML {
@@ -57,4 +46,47 @@ func FromFeeds(feeds []*db.Feed, userEmailAddress string) *OPML {
 	}
 
 	return o
+}
+
+func (o *OPML) ToBytes() ([]byte, error) {
+	return xml.Marshal(o)
+}
+
+func (o *OPML) ToFeeds() []*db.Feed {
+	var out []*db.Feed
+	for _, item := range o.Body.Outlines {
+		out = append(out, item.ToFeeds()...)
+	}
+	return out
+}
+
+type Outline struct {
+	Outlines []*Outline `xml:"outline"`
+	Text     string     `xml:"text,attr"`
+	Title    string     `xml:"title,attr,omitempty"`
+	Type     string     `xml:"type,attr,omitempty"`
+	XMLURL   string     `xml:"xmlUrl,attr,omitempty"`
+}
+
+func (o *Outline) ToFeeds() []*db.Feed {
+	var out []*db.Feed
+
+	if strings.EqualFold(o.Type, "rss") {
+		name := o.Text
+		if o.Title != "" {
+			name = o.Title
+		}
+
+		out = append(out, &db.Feed{
+			ID:   shortuuid.New(),
+			URL:  o.XMLURL,
+			Name: name,
+		})
+	}
+
+	for _, item := range o.Outlines {
+		out = append(out, item.ToFeeds()...)
+	}
+
+	return out
 }
