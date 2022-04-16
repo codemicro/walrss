@@ -10,6 +10,12 @@
 |------------------------------------------------------|------------------------------------------|
 | ![Sample email](.github/screenshots/sampleEmail.png) | ![Web UI](.github/screenshots/webUI.png) |
 
+## Features
+
+* Multi-user support
+* Option to choose between daily or weekly digests that are sent at specific times of day
+* OPML import/export
+
 ## Quickstart
 
 ### Docker
@@ -63,7 +69,6 @@ platform:
 
 ## Future features
 
-* OPML import/export
 * Feed categories
 * Administrator users
 * Account controls (eg password reset, change password, etc)
