@@ -40,7 +40,7 @@ func ProcessFeeds(st *state.State, day db.SendDay, hour int) error {
 	}
 
 	for _, ur := range u {
-		if err := ProcessUserFeed(st, ur); err != nil {
+		if err := ProcessUserFeed(st, ur, nil); err != nil {
 			log.Warn().Err(err).Str("user", ur.ID).Msg("could not process feeds for user")
 		}
 	}
@@ -48,14 +48,30 @@ func ProcessFeeds(st *state.State, day db.SendDay, hour int) error {
 	return nil
 }
 
-func ProcessUserFeed(st *state.State, user *db.User) error {
+func reportProgress(channel chan string, msg string) {
+	if channel == nil {
+		return
+	}
+	channel <- msg
+}
+
+func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string) error {
+	defer func() {
+		if progressChannel == nil {
+			return
+		}
+		close(progressChannel) // This is important! There's a chance that if this is not done before ProcessUserFeed
+		// exits, the caller completely hang on this thread.
+	}()
+
+	reportProgress(progressChannel, "Fetching feed list")
 	userFeeds, err := core.GetFeedsForUser(st, user.ID)
 	if err != nil {
 		return err
 	}
 
 	var interval time.Duration
-	if user.Schedule.Day == db.SendDaily {
+	if user.Schedule.Day == db.SendDaily || user.Schedule.Day == db.SendDayNever {
 		interval = time.Hour * 24
 	} else {
 		interval = time.Hour * 24 * 7
@@ -65,31 +81,43 @@ func ProcessUserFeed(st *state.State, user *db.User) error {
 
 	startTime := time.Now().UTC()
 
-	for _, f := range userFeeds {
+	reportProgress(progressChannel, "Fetching feed content")
+
+	for i, f := range userFeeds {
+		reportProgress(progressChannel, fmt.Sprintf("Fetching feed %d of %d: %s", i+1, len(userFeeds), f.Name))
 		pf := new(processedFeed)
 		pf.Name = f.Name
 
 		rawFeed, err := getFeedContent(f.URL)
 		if err != nil {
 			pf.Error = err
+			reportProgress(progressChannel, "Failed to fetch: "+err.Error())
 		} else {
-			pf.Items = filterFeedContent(rawFeed, time.Now().UTC().Add(-interval))
+			pf.Items = filterFeedContent(rawFeed, time.Now().Add(-time.Hour*24*3).UTC().Add(-interval))
 		}
 		processedFeeds = append(processedFeeds, pf)
 	}
+
+	reportProgress(progressChannel, "Finished fetching feed content\nGenerating email")
 
 	plainContent, htmlContent, err := generateEmail(st, processedFeeds, interval, time.Now().UTC().Sub(startTime))
 	if err != nil {
 		return err
 	}
 
-	return sendEmail(
+	reportProgress(progressChannel, "Sending email")
+
+	err = sendEmail(
 		st,
 		plainContent,
 		htmlContent,
 		user.Email,
 		"RSS digest for "+time.Now().UTC().Format(dateFormat),
 	)
+
+	reportProgress(progressChannel, "Done!")
+
+	return err
 }
 
 var (

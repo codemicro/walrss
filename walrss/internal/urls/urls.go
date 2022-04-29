@@ -27,7 +27,8 @@ const (
 	New         = "/new"
 	NewFeedItem = New + "/feed"
 
-	SendTestEmail = "/send/test"
+	SendTestEmail   = "/send/test"
+	TestEmailStatus = "/send/test/status"
 
 	Statics = "/statics"
 )

@@ -9,6 +9,8 @@ import "github.com/codemicro/walrss/walrss/internal/urls"
 
 import "sort"
 
+import "strings"
+
 import "github.com/lithammer/shortuuid/v4"
 
 import (
@@ -415,9 +417,9 @@ func (p *MainPage) StreamRenderScheduleCard(qw422016 *qt422016.Writer) {
 	qw422016.N().S(`
 <div class="card mt-3" id="scheduleCard" hx-target="this" hx-swap="outerHTML">
     <div class="card-header">
-        Schedule
+        Email settings
     </div>
-    <div class="card-body">
+    <div class="card-body" id="scheduleCardBody">
 
         <div class="mb-2 row row-cols-lg-auto align-items-center">
             <div class="col-12">
@@ -550,7 +552,7 @@ func (p *MainPage) StreamRenderScheduleCard(qw422016 *qt422016.Writer) {
 
         <button class="mt-2 btn btn-primary btn-sm" hx-post="`)
 	qw422016.N().S(urls.SendTestEmail)
-	qw422016.N().S(`" hx-swap="none">Send test email</button>
+	qw422016.N().S(`" hx-target="#scheduleCardBody">Send test email</button>
 
     </div>
 </div>
@@ -566,6 +568,51 @@ func (p *MainPage) WriteRenderScheduleCard(qq422016 qtio422016.Writer) {
 func (p *MainPage) RenderScheduleCard() string {
 	qb422016 := qt422016.AcquireByteBuffer()
 	p.WriteRenderScheduleCard(qb422016)
+	qs422016 := string(qb422016.B)
+	qt422016.ReleaseByteBuffer(qb422016)
+	return qs422016
+}
+
+func StreamRenderTestEmailBox(qw422016 *qt422016.Writer, content string, endOnNext bool) {
+	qw422016.N().S(`
+`)
+	url := urls.TestEmailStatus
+	if endOnNext {
+		url += "?end=true"
+	}
+	parts := strings.Split(strings.TrimSpace(content), "\n")
+	if len(parts) > 7 {
+		parts = parts[len(parts)-7:]
+	}
+
+	qw422016.N().S(`
+<div class="card-body" hx-get="`)
+	qw422016.N().S(url)
+	qw422016.N().S(`" hx-trigger="load delay:1s" hx-target="this" hx-swap="outerHTML">
+    <h3>Test status</h3>
+
+    `)
+	for _, line := range parts {
+		qw422016.N().S(`
+        <span>`)
+		qw422016.E().S(line)
+		qw422016.N().S(`</span><br>
+    `)
+	}
+	qw422016.N().S(`
+</div>
+`)
+}
+
+func WriteRenderTestEmailBox(qq422016 qtio422016.Writer, content string, endOnNext bool) {
+	qw422016 := qt422016.AcquireWriter(qq422016)
+	StreamRenderTestEmailBox(qw422016, content, endOnNext)
+	qt422016.ReleaseWriter(qw422016)
+}
+
+func RenderTestEmailBox(content string, endOnNext bool) string {
+	qb422016 := qt422016.AcquireByteBuffer()
+	WriteRenderTestEmailBox(qb422016, content, endOnNext)
 	qs422016 := string(qb422016.B)
 	qt422016.ReleaseByteBuffer(qb422016)
 	return qs422016

@@ -1,6 +1,7 @@
 {% import "github.com/codemicro/walrss/walrss/internal/db" %}
 {% import "github.com/codemicro/walrss/walrss/internal/urls" %}
 {% import "sort" %}
+{% import "strings" %}
 {% import "github.com/lithammer/shortuuid/v4" %}
 
 {% code type MainPage struct {
@@ -243,9 +244,9 @@
 {% func (p *MainPage) RenderScheduleCard() %}
 <div class="card mt-3" id="scheduleCard" hx-target="this" hx-swap="outerHTML">
     <div class="card-header">
-        Schedule
+        Email settings
     </div>
-    <div class="card-body">
+    <div class="card-body" id="scheduleCardBody">
 
         <div class="mb-2 row row-cols-lg-auto align-items-center">
             <div class="col-12">
@@ -329,8 +330,28 @@
             </div>
         </form>
 
-        <button class="mt-2 btn btn-primary btn-sm" hx-post="{%s= urls.SendTestEmail %}" hx-swap="none">Send test email</button>
+        <button class="mt-2 btn btn-primary btn-sm" hx-post="{%s= urls.SendTestEmail %}" hx-target="#scheduleCardBody">Send test email</button>
 
     </div>
+</div>
+{% endfunc %}
+
+{% func RenderTestEmailBox(content string, endOnNext bool) %}
+{% code
+url := urls.TestEmailStatus
+if endOnNext {
+    url += "?end=true"
+}
+parts := strings.Split(strings.TrimSpace(content), "\n")
+if len(parts) > 7 {
+    parts = parts[len(parts)-7:]
+}
+%}
+<div class="card-body" hx-get="{%s= url %}" hx-trigger="load delay:1s" hx-target="this" hx-swap="outerHTML">
+    <h3>Test status</h3>
+
+    {% for _, line := range parts %}
+        <span>{%s line %}</span><br>
+    {% endfor %}
 </div>
 {% endfunc %}

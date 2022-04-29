@@ -90,6 +90,7 @@ func (s *Server) registerHandlers() {
 	s.app.Post(urls.NewFeedItem, s.newFeedItem)
 
 	s.app.Post(urls.SendTestEmail, s.sendTestEmail)
+	s.app.Get(urls.TestEmailStatus, s.testEmailStatus)
 
 	s.app.Get(urls.ExportAsOPML, s.exportAsOPML)
 	s.app.Post(urls.ImportFromOPML, s.importFromOPML)
