@@ -93,7 +93,7 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 			pf.Error = err
 			reportProgress(progressChannel, "Failed to fetch: "+err.Error())
 		} else {
-			pf.Items = filterFeedContent(rawFeed, time.Now().Add(-time.Hour*24*3).UTC().Add(-interval))
+			pf.Items = filterFeedContent(rawFeed, time.Now().UTC().Add(-interval))
 		}
 		processedFeeds = append(processedFeeds, pf)
 	}
