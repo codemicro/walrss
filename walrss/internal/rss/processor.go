@@ -93,7 +93,21 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 			pf.Error = err
 			reportProgress(progressChannel, "Failed to fetch: "+err.Error())
 		} else {
-			pf.Items = filterFeedContent(rawFeed, time.Now().UTC().Add(-interval))
+			// Instead of just using the interval, we want to include everything from the earliest day specified by
+			// the interval.
+			//
+			// Say we were running at 5AM and we had an interval of 24 hours. We'd select all the feed items from up to
+			// 5AM from the day before. Sometimes, this would end up with feeds published at exactly midnight being
+			// ignored, for example.
+			//
+			// This doesn't explain it well, but I don't quite understand it, so this is what you're getting.
+
+			t := time.Now().UTC().Add(-interval)
+
+			pf.Items = filterFeedContent(
+				rawFeed,
+				time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC),
+			)
 		}
 		processedFeeds = append(processedFeeds, pf)
 	}
@@ -161,7 +175,13 @@ func filterFeedContent(feed *gofeed.Feed, earliestPublishTime time.Time) []*feed
 	var o []*feedItem
 
 	for _, item := range feed.Items {
-		if item.PublishedParsed != nil && item.PublishedParsed.After(earliestPublishTime) {
+		if item.PublishedParsed == nil {
+			continue
+		}
+
+		*item.PublishedParsed = item.PublishedParsed.UTC()
+		
+		if item.PublishedParsed.After(earliestPublishTime) || item.PublishedParsed.Equal(earliestPublishTime) {
 			o = append(o, &feedItem{
 				Title:       strings.TrimSpace(item.Title),
 				URL:         item.Link,
