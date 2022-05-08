@@ -14,6 +14,3 @@ fmt:
 templates:
 	qtc -skipLineComments -ext qtpl.html -dir walrss/internal/http/views
 
-dockerBuild:
-	sudo docker build -t ghcr.io/codemicro/walrss:latest .
-	sudo docker push ghcr.io/codemicro/walrss:latest
