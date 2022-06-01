@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.3] - 2022-06-01
+### Added
+* Added a user agent to any requests made by Walrss (a very basic regex for this is `walrss(\/(\d|\.){5})? \(https:\/\/github\.com\/codemicro\/walrss\)`)
+
 ## [0.2.2] - 2022-05-08
 ### Fixed
 * Feed entries from midnight on a given day are no longer mistakenly ignored.
