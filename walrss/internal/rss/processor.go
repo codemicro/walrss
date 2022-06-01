@@ -27,6 +27,15 @@ const (
 	timeFormat = "15:04:05"
 )
 
+var userAgent = func() string {
+	o := "walrss"
+	if core.Version != "" {
+		o += "/" + core.Version
+	}
+	o += " (https://github.com/codemicro/walrss)"
+	return o
+}()
+
 type processedFeed struct {
 	Name  string
 	Items []*feedItem
@@ -151,7 +160,7 @@ func getFeedContent(url string) (*gofeed.Feed, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	if err := requests.URL(url).ToBytesBuffer(buf).Fetch(ctx); err != nil {
+	if err := requests.URL(url).ToBytesBuffer(buf).UserAgent(userAgent).Fetch(ctx); err != nil {
 		return nil, err
 	}
 
@@ -287,6 +296,11 @@ func generateEmail(st *state.State, processedItems []*processedFeed, interval, t
 }
 
 func sendEmail(st *state.State, plain, html []byte, to, subject string) error {
+	if st.Config.Debug {
+		log.Debug().Str("addr", to).Str("subject", subject).Msg("skipping email send due to debug mode")
+		return nil
+	}
+
 	return (&email.Email{
 		From:    st.Config.Email.From,
 		To:      []string{to},
