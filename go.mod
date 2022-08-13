@@ -1,6 +1,6 @@
 module github.com/codemicro/walrss
 
-go 1.18
+go 1.19
 
 require (
 	github.com/bwmarrin/go-alone v0.0.0-20190806015146-742bb55d1631
