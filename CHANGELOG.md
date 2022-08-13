@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.0] - 2022-08-13
+### Changed
+* Migrated to SQLite in favour of BoltDB. This a completely breaking change.
+
 ## [0.2.3] - 2022-06-01
 ### Added
 * Added a user agent to any requests made by Walrss (a very basic regex for this is `walrss(\/(\d|\.){5})? \(https:\/\/github\.com\/codemicro\/walrss\)`)
@@ -32,7 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.1.0] - 2022-04-14
 Initial release
 
-[Unreleased]: https://github.com/codemicro/walrss/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/codemicro/walrss/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/codemicro/walrss/releases/tag/v0.3.0
 [0.2.3]: https://github.com/codemicro/walrss/releases/tag/v0.2.3
 [0.2.2]: https://github.com/codemicro/walrss/releases/tag/v0.2.2
 [0.2.1]: https://github.com/codemicro/walrss/releases/tag/v0.2.1
