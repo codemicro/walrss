@@ -25,7 +25,10 @@ jobs:
       run: |
         echo "::set-output name=LATEST::$IMAGE_NAME:latest"
         echo "::set-output name=VERSIONED::$IMAGE_NAME:${{ steps.get_version.outputs.VERSION }}"
-      
+
+    - name: Set version number
+      run: bash setVersionNumber.sh "${{ steps.get_version.outputs.VERSION }}"
+
     - name: Build Docker image
       run: docker build . --file Dockerfile --tag ${{ steps.make_tags.outputs.LATEST }} --tag ${{ steps.make_tags.outputs.VERSIONED }}
       
