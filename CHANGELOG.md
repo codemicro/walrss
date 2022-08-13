@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.1] - 2022-08-13
+This one deploys.
+
 ## [0.3.0] - 2022-08-13
 ### Changed
 * Migrated to SQLite in favour of BoltDB. This a completely breaking change.
