@@ -1,12 +1,13 @@
 package core
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"github.com/codemicro/walrss/walrss/internal/core/opml"
 	"github.com/codemicro/walrss/walrss/internal/db"
 	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/lithammer/shortuuid/v4"
-	bh "github.com/timshannon/bolthold"
 )
 
 func NewFeed(st *state.State, userID, name, url string) (*db.Feed, error) {
@@ -25,37 +26,34 @@ func NewFeed(st *state.State, userID, name, url string) (*db.Feed, error) {
 		UserID: userID,
 	}
 
-	if err := st.Data.Insert(feed.ID, feed); err != nil {
+	if _, err := st.Data.NewInsert().Model(feed).Exec(context.Background()); err != nil {
 		return nil, err
 	}
 
 	return feed, nil
 }
 
-func GetFeedsForUser(st *state.State, userID string) ([]*db.Feed, error) {
-	var feeds []*db.Feed
-	if err := st.Data.Find(&feeds, bh.Where("UserID").Eq(userID)); err != nil {
-		return nil, err
-	}
-	return feeds, nil
+func GetFeedsForUser(st *state.State, userID string) (res []*db.Feed, err error) {
+	err = st.Data.NewSelect().
+		Model(&res).
+		Relation("User").
+		Where("Feed.user_id = ?", userID).
+		Scan(context.Background())
+	return
 }
 
-func GetFeed(st *state.State, id string) (*db.Feed, error) {
-	feed := new(db.Feed)
-	if err := st.Data.FindOne(feed, bh.Where("ID").Eq(id)); err != nil {
-		if errors.Is(err, bh.ErrNotFound) {
-			return nil, ErrNotFound
-		}
-		return nil, err
+func GetFeed(st *state.State, id string) (res *db.Feed, err error) {
+	res = new(db.Feed)
+	err = st.Data.NewSelect().Model(res).Where("id = ?", id).Scan(context.Background())
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
 	}
-	return feed, nil
+	return
 }
 
 func DeleteFeed(st *state.State, id string) error {
-	if err := st.Data.Delete(id, new(db.Feed)); err != nil {
-		return err
-	}
-	return nil
+	_, err := st.Data.NewSelect().Model((*db.Feed)(nil)).Where("id = ?", id).Exec(context.Background())
+	return err
 }
 
 func UpdateFeed(st *state.State, feed *db.Feed) error {
@@ -67,13 +65,11 @@ func UpdateFeed(st *state.State, feed *db.Feed) error {
 		return err
 	}
 
-	if err := st.Data.Update(feed.ID, feed); err != nil {
-		if errors.Is(err, bh.ErrNotFound) {
-			return ErrNotFound
-		}
-		return err
+	_, err := st.Data.NewUpdate().Model(feed).WherePK().Exec(context.Background())
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
 	}
-	return nil
+	return err
 }
 
 func ExportFeedsForUser(st *state.State, userID string) ([]byte, error) {
@@ -82,9 +78,14 @@ func ExportFeedsForUser(st *state.State, userID string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := st.Data.Find(&feeds, bh.Where("UserID").Eq(userID)); err != nil {
+
+	if err := st.Data.NewSelect().
+		Model(&feeds).
+		Where("user_id = ?", userID).
+		Scan(context.Background()); err != nil {
 		return nil, err
 	}
+
 	return opml.FromFeeds(feeds, user.Email).ToBytes()
 }
 

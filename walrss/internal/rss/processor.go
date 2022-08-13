@@ -80,7 +80,7 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 	}
 
 	var interval time.Duration
-	if user.Schedule.Day == db.SendDaily || user.Schedule.Day == db.SendDayNever {
+	if user.ScheduleDay == db.SendDaily || user.ScheduleDay == db.SendDayNever {
 		interval = time.Hour * 24
 	} else {
 		interval = time.Hour * 24 * 7
@@ -189,7 +189,7 @@ func filterFeedContent(feed *gofeed.Feed, earliestPublishTime time.Time) []*feed
 		}
 
 		*item.PublishedParsed = item.PublishedParsed.UTC()
-		
+
 		if item.PublishedParsed.After(earliestPublishTime) || item.PublishedParsed.Equal(earliestPublishTime) {
 			o = append(o, &feedItem{
 				Title:       strings.TrimSpace(item.Title),

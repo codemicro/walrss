@@ -23,9 +23,9 @@ func (s *Server) mainPage(ctx *fiber.Ctx) error {
 	}
 
 	return views.SendPage(ctx, &views.MainPage{
-		EnableDigests: user.Schedule.Active,
-		SelectedDay:   user.Schedule.Day,
-		SelectedTime:  user.Schedule.Hour,
+		EnableDigests: user.Active,
+		SelectedDay:   user.ScheduleDay,
+		SelectedTime:  user.ScheduleHour,
 		Feeds:         feeds,
 	})
 }

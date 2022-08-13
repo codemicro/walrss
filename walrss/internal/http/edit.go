@@ -22,9 +22,9 @@ func (s *Server) editEnabledState(ctx *fiber.Ctx) error {
 	}
 
 	if strings.ToLower(ctx.FormValue("enable", "off")) == "on" {
-		user.Schedule.Active = true
+		user.Active = true
 	} else {
-		user.Schedule.Active = false
+		user.Active = false
 	}
 
 	if err := core.UpdateUser(s.state, user); err != nil {
@@ -33,9 +33,9 @@ func (s *Server) editEnabledState(ctx *fiber.Ctx) error {
 
 	fragmentEmitSuccess(ctx)
 	return ctx.SendString((&views.MainPage{
-		EnableDigests: user.Schedule.Active,
-		SelectedDay:   user.Schedule.Day,
-		SelectedTime:  user.Schedule.Hour,
+		EnableDigests: user.Active,
+		SelectedDay:   user.ScheduleDay,
+		SelectedTime:  user.ScheduleHour,
 	}).RenderScheduleCard())
 }
 
@@ -57,7 +57,7 @@ func (s *Server) editTimings(ctx *fiber.Ctx) error {
 		if x > db.SendOnSunday || x < 0 {
 			return core.NewUserError("invalid day: out of range 0<=x<=%d", int(db.SendOnSunday))
 		}
-		user.Schedule.Day = x
+		user.ScheduleDay = x
 	}
 
 	if n, err := strconv.ParseInt(ctx.FormValue("time"), 10, 8); err != nil {
@@ -67,7 +67,7 @@ func (s *Server) editTimings(ctx *fiber.Ctx) error {
 		if x > 23 || x < 0 {
 			return core.NewUserError("invalid time: out of range 0<=x<=23")
 		}
-		user.Schedule.Hour = x
+		user.ScheduleHour = x
 	}
 
 	if err := core.UpdateUser(s.state, user); err != nil {
@@ -76,9 +76,9 @@ func (s *Server) editTimings(ctx *fiber.Ctx) error {
 
 	fragmentEmitSuccess(ctx)
 	return ctx.SendString((&views.MainPage{
-		EnableDigests: user.Schedule.Active,
-		SelectedDay:   user.Schedule.Day,
-		SelectedTime:  user.Schedule.Hour,
+		EnableDigests: user.Active,
+		SelectedDay:   user.ScheduleDay,
+		SelectedTime:  user.ScheduleHour,
 	}).RenderScheduleCard())
 }
 

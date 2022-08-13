@@ -1,40 +1,49 @@
 package db
 
 import (
-	"encoding/json"
-	bh "github.com/timshannon/bolthold"
+	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog/log"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"strings"
 )
 
-func New(filename string) (*bh.Store, error) {
-	store, err := bh.Open(filename, 0644, &bh.Options{
-		Encoder: json.Marshal,
-		Decoder: json.Unmarshal,
-	})
+func New(filename string) (*bun.DB, error) {
+	dsn := filename
+	log.Info().Msg("connecting to database")
+	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, err
 	}
-	return store, nil
+
+	db.SetMaxOpenConns(1) // https://github.com/mattn/go-sqlite3/issues/274#issuecomment-191597862
+
+	return bun.NewDB(db, sqlitedialect.New()), nil
 }
 
 type User struct {
-	ID       string `boldholdKey:""`
-	Email    string `boltholdUnique:"UniqueEmail"`
-	Password []byte
-	Salt     []byte
+	bun.BaseModel `bun:"table:users"`
 
-	Schedule struct {
-		Active bool    `boltholdIndex:"Active"`
-		Day    SendDay `boltholdIndex:"Day"`
-		Hour   int     `boltholdIndex:"Hour"`
-	}
+	ID       string `bun:"id,pk"`
+	Email    string `bun:"email,notnull,unique"`
+	Password []byte `bun:"password"`
+	Salt     []byte `bun:"salt"`
+
+	Active       bool    `bun:"active,notnull"`
+	ScheduleDay  SendDay `bun:"schedule_day"`
+	ScheduleHour int     `bun:"schedule_hour"`
 }
 
 type Feed struct {
-	ID     string `boltholdKey:""`
-	URL    string
-	Name   string
-	UserID string `boldholdIndex:"UserID"`
+	bun.BaseModel `bun:"table:feeds"`
+
+	ID     string `bun:"id,pk"`
+	URL    string `bun:"url,notnull"`
+	Name   string `bun:"name,notnull"`
+	UserID string `bun:"user_id,notnull"`
+
+	User *User `bun:",rel:belongs-to,join:user_id=id"`
 }
 
 type FeedSlice []*Feed

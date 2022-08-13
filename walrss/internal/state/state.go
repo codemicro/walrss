@@ -6,14 +6,14 @@ import (
 	"github.com/kkyr/fig"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	bh "github.com/timshannon/bolthold"
+	"github.com/uptrace/bun"
 	"os"
 	"strings"
 )
 
 type State struct {
 	Config *Config
-	Data   *bh.Store
+	Data   *bun.DB
 }
 
 func New() *State {

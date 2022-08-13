@@ -10,11 +10,15 @@ require (
 	github.com/kkyr/fig v0.3.0
 	github.com/lithammer/shortuuid/v4 v4.0.0
 	github.com/matcornic/hermes v1.2.0
+	github.com/mattn/go-sqlite3 v1.14.14
 	github.com/mmcdole/gofeed v1.1.3
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rs/zerolog v1.26.1
 	github.com/stevelacy/daz v0.1.4
-	github.com/timshannon/bolthold v0.0.0-20210913165410-232392fc8a6a
+	github.com/uptrace/bun v1.1.7
+	github.com/uptrace/bun/dialect/sqlitedialect v1.1.7
+	github.com/uptrace/bun/extra/bundebug v1.1.7
+	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/quicktemplate v1.7.0
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 )
@@ -26,12 +30,16 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/andybalholm/cascadia v1.1.0 // indirect
+	github.com/fatih/color v1.13.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
@@ -43,12 +51,13 @@ require (
 	github.com/pelletier/go-toml v1.9.3 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
+	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.34.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	go.etcd.io/bbolt v1.3.6 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
+	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
-	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
+	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

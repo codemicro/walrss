@@ -6,6 +6,7 @@ import (
 	"github.com/codemicro/walrss/walrss/internal/rss"
 	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/rs/zerolog/log"
+	"github.com/uptrace/bun/extra/bundebug"
 	"os"
 )
 
@@ -28,6 +29,15 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
+	store.AddQueryHook(bundebug.NewQueryHook(
+		bundebug.WithEnabled(st.Config.Debug),
+	))
+
+	if err := db.DoMigrations(store); err != nil {
+		return err
+	}
+
 	st.Data = store
 
 	server, err := http.New(st)

@@ -1,11 +1,13 @@
 package core
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"github.com/codemicro/walrss/walrss/internal/db"
 	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/lithammer/shortuuid/v4"
-	bh "github.com/timshannon/bolthold"
+	"github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,9 +33,11 @@ func RegisterUser(st *state.State, email, password string) (*db.User, error) {
 
 	u.Password = hash
 
-	if err := st.Data.Insert(u.ID, u); err != nil {
-		if errors.Is(err, bh.ErrUniqueExists) {
-			return nil, NewUserError("email address in use")
+	if _, err := st.Data.NewInsert().Model(u).Exec(context.Background()); err != nil {
+		if e, ok := err.(*sqlite3.Error); ok {
+			if e.Code == sqlite3.ErrConstraint {
+				return nil, NewUserError("email address in use")
+			}
 		}
 		return nil, err
 	}
@@ -57,59 +61,42 @@ func AreUserCredentialsCorrect(st *state.State, email, password string) (bool, e
 	return true, nil
 }
 
-func GetUserByID(st *state.State, userID string) (*db.User, error) {
-	user := new(db.User)
-	if err := st.Data.FindOne(user, bh.Where("ID").Eq(userID)); err != nil {
-		if errors.Is(err, bh.ErrNotFound) {
-			return nil, ErrNotFound
-		}
-		return nil, err
+func GetUserByID(st *state.State, userID string) (res *db.User, err error) {
+	res = new(db.User)
+	err = st.Data.NewSelect().Model(res).Where("id = ?", userID).Scan(context.Background())
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
 	}
-	return user, nil
+	return
 }
 
-func GetUserByEmail(st *state.State, email string) (*db.User, error) {
-	user := new(db.User)
-	if err := st.Data.FindOne(user, bh.Where("Email").Eq(email)); err != nil {
-		if errors.Is(err, bh.ErrNotFound) {
-			return nil, ErrNotFound
-		}
-		return nil, err
+func GetUserByEmail(st *state.State, email string) (res *db.User, err error) {
+	res = new(db.User)
+	err = st.Data.NewSelect().Model(res).Where("email = ?", email).Scan(context.Background())
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
 	}
-	return user, nil
+	return
 }
 
 func UpdateUser(st *state.State, user *db.User) error {
-	if err := st.Data.Update(user.ID, user); err != nil {
-		if errors.Is(err, bh.ErrNotFound) {
-			return ErrNotFound
-		}
-		return err
+	_, err := st.Data.NewUpdate().Model(user).WherePK().Exec(context.Background())
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
 	}
-	return nil
+	return err
 }
 
-func GetUsersBySchedule(st *state.State, day db.SendDay, hour int) ([]*db.User, error) {
-	// When trying to Or some queries, BH was weird, so it's easier to make two queries and combine them.
-	// This ensures that indexes are used.
-
-	var users []*db.User
-	if err := st.Data.Find(&users,
-		bh.Where("Schedule.Active").Eq(true).
-			And("Schedule.Day").Eq(day).
-			And("Schedule.Hour").Eq(hour),
-	); err != nil {
-		return nil, err
-	}
-
-	var users2 []*db.User
-	if err := st.Data.Find(&users2,
-		bh.Where("Schedule.Active").Eq(true).
-			And("Schedule.Day").Eq(db.SendDaily).
-			And("Schedule.Hour").Eq(hour),
-	); err != nil {
-		return nil, err
-	}
-
-	return append(users, users2...), nil
+func GetUsersBySchedule(st *state.State, day db.SendDay, hour int) (res []*db.User, err error) {
+	err = st.Data.NewSelect().
+		Model(&res).
+		Where(
+			"active = ? and (schedule_day = ? or schedule_day = ?) and schedule_hour = ?",
+			true,
+			day,
+			db.SendDaily,
+			hour,
+		).
+		Scan(context.Background())
+	return
 }
