@@ -7,7 +7,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	bh "github.com/timshannon/bolthold"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -48,7 +47,7 @@ func LoadConfig() (*Config, error) {
 	if _, err := os.Stat(configFilename); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// If the file doesn't have contents, Fig will throw an EOF, despite `touch config.yaml` working fine. idk lol
-			if err := ioutil.WriteFile(configFilename, []byte("{}"), 0777); err != nil {
+			if err := os.WriteFile(configFilename, []byte("{}"), 0777); err != nil {
 				return nil, err
 			}
 		} else {
