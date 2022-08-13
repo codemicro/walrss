@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.2] - 2022-08-13
+### Added
+* OIDC support
+
 ## [0.3.1] - 2022-08-13
 This one deploys.
 
