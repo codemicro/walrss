@@ -18,7 +18,8 @@ var (
 
 type SignInPage struct {
 	BasePage
-	Problem string
+	Problem     string
+	OIDCEnabled bool
 }
 
 func (p *SignInPage) StreamTitle(qw422016 *qt422016.Writer) {
@@ -73,6 +74,16 @@ func (p *SignInPage) StreamBody(qw422016 *qt422016.Writer) {
     <a href="`)
 	qw422016.N().S(urls.AuthRegister)
 	qw422016.N().S(`">No account? Click here to register</a>
+    <br>
+    `)
+	if p.OIDCEnabled {
+		qw422016.N().S(`
+        <a href="`)
+		qw422016.N().S(urls.AuthOIDCOutbound)
+		qw422016.N().S(`">Click here to login with OIDC</a>
+    `)
+	}
+	qw422016.N().S(`
 </div>
 `)
 }

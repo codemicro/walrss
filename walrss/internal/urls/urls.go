@@ -8,9 +8,12 @@ import (
 const (
 	Index = "/"
 
-	Auth         = "/auth"
-	AuthSignIn   = Auth + "/signin"
-	AuthRegister = Auth + "/register"
+	Auth             = "/auth"
+	AuthSignIn       = Auth + "/signin"
+	AuthRegister     = Auth + "/register"
+	AuthOIDC         = Auth + "/oidc"
+	AuthOIDCOutbound = AuthOIDC + "/outbound"
+	AuthOIDCCallback = AuthOIDC + "/callback"
 
 	Edit               = "/edit"
 	EditEnabledState   = Edit + "/enabled"

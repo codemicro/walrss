@@ -37,6 +37,12 @@ type Config struct {
 		DisableRegistration  bool `fig:"disableRegistration"`
 		DisableSecureCookies bool `fig:"disableSecureCookies"`
 	}
+	OIDC struct {
+		Enable       bool   `fig:"enable"`
+		ClientID     string `fig:"clientID"`
+		ClientSecret string `fig:"clientSecret"`
+		Issuer       string `fig:"issuer"`
+	}
 	Debug bool `fig:"debug"`
 }
 

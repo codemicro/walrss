@@ -1,15 +1,19 @@
 package http
 
 import (
+	"context"
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/codemicro/walrss/walrss/internal/static"
 	"github.com/codemicro/walrss/walrss/internal/urls"
+	"github.com/coreos/go-oidc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/stevelacy/daz"
+	"golang.org/x/oauth2"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -22,6 +26,10 @@ const (
 type Server struct {
 	state *state.State
 	app   *fiber.App
+
+	oidcProvider *oidc.Provider
+	oidcVerifier *oidc.IDTokenVerifier
+	oauth2Config *oauth2.Config
 }
 
 func New(st *state.State) (*Server, error) {
@@ -53,6 +61,23 @@ func New(st *state.State) (*Server, error) {
 		app:   app,
 	}
 
+	if st.Config.OIDC.Enable {
+		provider, err := oidc.NewProvider(context.Background(), st.Config.OIDC.Issuer)
+		if err != nil {
+			return nil, err
+		}
+
+		s.oidcProvider = provider
+		s.oidcVerifier = provider.Verifier(&oidc.Config{ClientID: st.Config.OIDC.ClientID})
+		s.oauth2Config = &oauth2.Config{
+			ClientID:     st.Config.OIDC.ClientID,
+			ClientSecret: st.Config.OIDC.ClientSecret,
+			Endpoint:     provider.Endpoint(),
+			RedirectURL:  strings.TrimSuffix(st.Config.Server.ExternalURL, "/") + urls.AuthOIDCCallback,
+			Scopes:       []string{"email", "profile", "openid"},
+		}
+	}
+
 	s.registerHandlers()
 
 	return s, nil
@@ -77,6 +102,9 @@ func (s *Server) registerHandlers() {
 
 	s.app.Get(urls.AuthSignIn, s.authSignIn)
 	s.app.Post(urls.AuthSignIn, s.authSignIn)
+
+	s.app.Get(urls.AuthOIDCOutbound, s.authOIDCOutbound)
+	s.app.Get(urls.AuthOIDCCallback, s.authOIDCCallback)
 
 	s.app.Put(urls.EditEnabledState, s.editEnabledState)
 	s.app.Put(urls.EditTimings, s.editTimings)

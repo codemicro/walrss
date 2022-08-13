@@ -3,6 +3,7 @@
 {% code type SignInPage struct {
     BasePage
     Problem string
+    OIDCEnabled bool
 } %}
 
 {% func (p *SignInPage) Title() %}Sign in{% endfunc %}
@@ -29,5 +30,9 @@
     </form>
     <br>
     <a href="{%s= urls.AuthRegister %}">No account? Click here to register</a>
+    <br>
+    {% if p.OIDCEnabled %}
+        <a href="{%s= urls.AuthOIDCOutbound %}">Click here to login with OIDC</a>
+    {% endif %}
 </div>
 {% endfunc %}

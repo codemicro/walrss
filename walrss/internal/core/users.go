@@ -45,10 +45,32 @@ func RegisterUser(st *state.State, email, password string) (*db.User, error) {
 	return u, nil
 }
 
+func RegisterUserOIDC(st *state.State, email string) (*db.User, error) {
+	u := &db.User{
+		ID:    shortuuid.New(),
+		Email: email,
+	}
+
+	if _, err := st.Data.NewInsert().Model(u).Exec(context.Background()); err != nil {
+		if e, ok := err.(*sqlite3.Error); ok {
+			if e.Code == sqlite3.ErrConstraint {
+				return nil, NewUserError("email address in use")
+			}
+		}
+		return nil, err
+	}
+
+	return u, nil
+}
+
 func AreUserCredentialsCorrect(st *state.State, email, password string) (bool, error) {
 	user, err := GetUserByEmail(st, email)
 	if err != nil {
 		return false, err
+	}
+
+	if len(user.Password) == 0 {
+		return false, nil
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.Password, combineStringAndSalt(password, user.Salt)); err != nil {
