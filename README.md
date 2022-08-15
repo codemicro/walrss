@@ -66,6 +66,11 @@ email:
 platform:
   disableRegistration: false
   disableSecureCookies: false
+oidc:
+  enable: false
+  clientID: "yourclientid"
+  clientSecret: "yourclientsecret"
+  issuer: "https://sso.example.com/"
 ```
 
 ## Future features
