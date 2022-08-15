@@ -15,6 +15,7 @@
 * Multi-user support
 * Option to choose between daily or weekly digests that are sent at specific times of day
 * OPML import/export
+* [OIDC](https://en.wikipedia.org/wiki/OpenID#OpenID_Connect_(OIDC)) integration
 
 ## Quickstart
 
