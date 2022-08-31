@@ -33,12 +33,7 @@ func RegisterUser(st *state.State, email, password string) (*db.User, error) {
 
 	u.Password = hash
 
-	if _, err := st.Data.NewInsert().Model(u).Exec(context.Background()); err != nil {
-		if e, ok := err.(*sqlite3.Error); ok {
-			if e.Code == sqlite3.ErrConstraint {
-				return nil, NewUserError("email address in use")
-			}
-		}
+	if err := coreRegisterUser(st, u); err != nil {
 		return nil, err
 	}
 
@@ -51,16 +46,23 @@ func RegisterUserOIDC(st *state.State, email string) (*db.User, error) {
 		Email: email,
 	}
 
-	if _, err := st.Data.NewInsert().Model(u).Exec(context.Background()); err != nil {
-		if e, ok := err.(*sqlite3.Error); ok {
-			if e.Code == sqlite3.ErrConstraint {
-				return nil, NewUserError("email address in use")
-			}
-		}
+	if err := coreRegisterUser(st, u); err != nil {
 		return nil, err
 	}
 
 	return u, nil
+}
+
+func coreRegisterUser(st *state.State, u *db.User) error {
+	if _, err := st.Data.NewInsert().Model(u).Exec(context.Background()); err != nil {
+		if e, ok := err.(sqlite3.Error); ok {
+			if e.Code == sqlite3.ErrConstraint {
+				return NewUserError("email address in use")
+			}
+		}
+		return err
+	}
+	return nil
 }
 
 func AreUserCredentialsCorrect(st *state.State, email, password string) (bool, error) {
