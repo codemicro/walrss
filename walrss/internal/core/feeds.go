@@ -52,7 +52,7 @@ func GetFeed(st *state.State, id string) (res *db.Feed, err error) {
 }
 
 func DeleteFeed(st *state.State, id string) error {
-	_, err := st.Data.NewSelect().Model((*db.Feed)(nil)).Where("id = ?", id).Exec(context.Background())
+	_, err := st.Data.NewDelete().Model((*db.Feed)(nil)).Where("id = ?", id).Exec(context.Background())
 	return err
 }
 
