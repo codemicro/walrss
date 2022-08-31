@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.3] - 2022-08-31
+### Fixed
+* Feed entries can now be deleted. [#1](https://github.com/codemicro/walrss/issues/1)
+* Proper errors are shown when attempting to register with an in-use email address. [#2](https://github.com/codemicro/walrss/issues/2)
+
 ## [0.3.2] - 2022-08-13
 ### Added
 * OIDC support
@@ -43,7 +48,10 @@ This one deploys.
 ## [0.1.0] - 2022-04-14
 Initial release
 
-[Unreleased]: https://github.com/codemicro/walrss/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/codemicro/walrss/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/codemicro/walrss/releases/tag/v0.3.3
+[0.3.2]: https://github.com/codemicro/walrss/releases/tag/v0.3.2
+[0.3.1]: https://github.com/codemicro/walrss/releases/tag/v0.3.1
 [0.3.0]: https://github.com/codemicro/walrss/releases/tag/v0.3.0
 [0.2.3]: https://github.com/codemicro/walrss/releases/tag/v0.2.3
 [0.2.2]: https://github.com/codemicro/walrss/releases/tag/v0.2.2
