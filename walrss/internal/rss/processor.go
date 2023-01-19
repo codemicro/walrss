@@ -29,7 +29,10 @@ const (
 	timeFormat = "15:04:05"
 )
 
-var ua = struct{ua string; once *sync.Once}{"", new(sync.Once)}
+var ua = struct {
+	ua   string
+	once *sync.Once
+}{"", new(sync.Once)}
 
 func getUserAgent(st *state.State) string {
 	ua.once.Do(func() {
@@ -326,12 +329,17 @@ func generateEmail(st *state.State, processedItems []*processedFeed, interval, t
 		},
 	}
 
+	var versionSpecifier string
+	if core.Version != "" {
+		versionSpecifier = " v" + core.Version
+	}
+
 	renderer := hermes.Hermes{
 		Product: hermes.Product{
 			Name:      "Walrss",
 			Link:      st.Config.Server.ExternalURL,
 			Logo:      st.Config.Server.ExternalURL + urls.Statics + "/logo_light.png",
-			Copyright: fmt.Sprintf("This email was generated in %.2f seconds by Walrss - Walrss is open source software licensed under the GNU AGPL v3 - https://github.com/codemicro/walrss", timeToGenerate.Seconds()),
+			Copyright: fmt.Sprintf("This email was generated in %.2f seconds by Walrss"+versionSpecifier+" - Walrss is open source software licensed under the GNU AGPL v3 - https://github.com/codemicro/walrss", timeToGenerate.Seconds()),
 		},
 		Theme: new(hermes.Flat),
 	}

@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.3.4] - 2022-01-19
 ### Added
 * Support for `ETag` and `Last-Modified` headers in feed responses
+### Changed
+* Added version number to email footer
 
 ## [0.3.3] - 2022-08-31
 ### Fixed
