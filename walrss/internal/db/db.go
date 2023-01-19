@@ -43,6 +43,9 @@ type Feed struct {
 	Name   string `bun:"name,notnull"`
 	UserID string `bun:"user_id,notnull"`
 
+	LastEtag      string `bun:"last_etag,nullzero"`
+	CachedContent string `bun:"cached_content,nullzero"`
+
 	User *User `bun:",rel:belongs-to,join:user_id=id"`
 }
 
