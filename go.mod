@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/bwmarrin/go-alone v0.0.0-20190806015146-742bb55d1631
-	github.com/carlmjohnson/requests v0.22.2
+	github.com/carlmjohnson/requests v0.22.3
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/gofiber/fiber/v2 v2.31.0
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible

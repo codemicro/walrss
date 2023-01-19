@@ -49,6 +49,11 @@ type Feed struct {
 	User *User `bun:",rel:belongs-to,join:user_id=id"`
 }
 
+func (f *Feed) CacheWithEtag(etag, content string) {
+	f.LastEtag = etag
+	f.CachedContent = content
+}
+
 type FeedSlice []*Feed
 
 func (f FeedSlice) Len() int {

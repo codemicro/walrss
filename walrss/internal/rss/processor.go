@@ -15,7 +15,9 @@ import (
 	"github.com/mmcdole/gofeed"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
+	"net/http"
 	"net/smtp"
+	"net/textproto"
 	"sort"
 	"strings"
 	"sync"
@@ -97,7 +99,7 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 		pf := new(processedFeed)
 		pf.Name = f.Name
 
-		rawFeed, err := getFeedContent(f.URL)
+		rawFeed, err := getFeedContent(st, f)
 		if err != nil {
 			pf.Error = err
 			reportProgress(progressChannel, "Failed to fetch: "+err.Error())
@@ -148,11 +150,11 @@ var (
 	feedFetchLock = new(sync.Mutex)
 )
 
-func getFeedContent(url string) (*gofeed.Feed, error) {
+func getFeedContent(st *state.State, f *db.Feed) (*gofeed.Feed, error) {
 	feedFetchLock.Lock()
 	defer feedFetchLock.Unlock()
 
-	if v, found := feedCache.Get(url); found {
+	if v, found := feedCache.Get(f.URL); found {
 		return v.(*gofeed.Feed), nil
 	}
 
@@ -160,8 +162,44 @@ func getFeedContent(url string) (*gofeed.Feed, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	if err := requests.URL(url).ToBytesBuffer(buf).UserAgent(userAgent).Fetch(ctx); err != nil {
+	var notModified bool
+	headers := make(textproto.MIMEHeader)
+
+	requestBuilder := requests.URL(f.URL).ToBytesBuffer(buf).UserAgent(userAgent).CopyHeaders(headers)
+
+	if f.LastEtag != "" {
+		requestBuilder.AddValidator(
+			func(resp *http.Response) error {
+				if resp.StatusCode == http.StatusNotModified {
+					notModified = true
+					return nil
+				} else {
+					return requests.DefaultValidator(resp)
+				}
+			},
+		)
+		requestBuilder.Header("If-None-Match", f.LastEtag)
+	} else {
+		requestBuilder.AddValidator(requests.DefaultValidator) // Since we're using CopyHeaders, we need to add the
+		// default validator back ourselves.
+	}
+
+	if err := requestBuilder.Fetch(ctx); err != nil {
 		return nil, err
+	}
+
+	if notModified {
+		log.Debug().Msgf("%s not modified", f.URL)
+		buf.WriteString(f.CachedContent)
+	} else {
+		log.Debug().Msgf("%s modified", f.URL)
+		etag := headers.Get("ETag")
+		if etag != "" {
+			f.CacheWithEtag(etag, buf.String())
+			if err := core.UpdateFeed(st, f); err != nil {
+				return nil, fmt.Errorf("failed to cache ETag-ed response: %v", err)
+			}
+		}
 	}
 
 	feed, err := gofeed.NewParser().Parse(buf)
@@ -169,7 +207,7 @@ func getFeedContent(url string) (*gofeed.Feed, error) {
 		return nil, err
 	}
 
-	_ = feedCache.Add(url, feed, cache.DefaultExpiration)
+	_ = feedCache.Add(f.URL, feed, cache.DefaultExpiration)
 
 	return feed, nil
 }
