@@ -29,14 +29,21 @@ const (
 	timeFormat = "15:04:05"
 )
 
-var userAgent = func() string {
-	o := "walrss"
-	if core.Version != "" {
-		o += "/" + core.Version
-	}
-	o += " (https://github.com/codemicro/walrss)"
-	return o
-}()
+var ua = struct{ua string; once *sync.Once}{"", new(sync.Once)}
+
+func getUserAgent(st *state.State) string {
+	ua.once.Do(func() {
+		o := "walrss"
+		if st.Config.Debug {
+			o += "/DEV"
+		} else if core.Version != "" {
+			o += "/" + core.Version
+		}
+		o += " (https://github.com/codemicro/walrss)"
+		ua.ua = o
+	})
+	return ua.ua
+}
 
 type processedFeed struct {
 	Name  string
@@ -165,7 +172,7 @@ func getFeedContent(st *state.State, f *db.Feed) (*gofeed.Feed, error) {
 	var notModified bool
 	headers := make(textproto.MIMEHeader)
 
-	requestBuilder := requests.URL(f.URL).ToBytesBuffer(buf).UserAgent(userAgent).CopyHeaders(headers)
+	requestBuilder := requests.URL(f.URL).ToBytesBuffer(buf).UserAgent(getUserAgent(st)).CopyHeaders(headers)
 
 	if f.LastEtag != "" {
 		requestBuilder.AddValidator(
