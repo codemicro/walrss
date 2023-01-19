@@ -42,7 +42,7 @@ func getUserAgent(st *state.State) string {
 		} else if core.Version != "" {
 			o += "/" + core.Version
 		}
-		o += " (https://github.com/codemicro/walrss)"
+		o += " (" + st.Config.Platform.ContactInformation + ", https://github.com/codemicro/walrss)"
 		ua.ua = o
 	})
 	return ua.ua

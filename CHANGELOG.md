@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.3.5 - 2022-01-19
+### Added
+* Added space for contact information to user agent
+
 ## 0.3.4 - 2022-01-19
 ### Added
 * Support for `ETag` and `Last-Modified` headers in feed responses

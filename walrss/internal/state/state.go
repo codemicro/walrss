@@ -34,8 +34,9 @@ type Config struct {
 		ExternalURL string `fig:"externalURL" validate:"required"`
 	}
 	Platform struct {
-		DisableRegistration  bool `fig:"disableRegistration"`
-		DisableSecureCookies bool `fig:"disableSecureCookies"`
+		DisableRegistration  bool   `fig:"disableRegistration"`
+		DisableSecureCookies bool   `fig:"disableSecureCookies"`
+		ContactInformation   string `fig:"contactInformation" validate:"required"`
 	}
 	OIDC struct {
 		Enable       bool   `fig:"enable"`
