@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.4] - 2022-01-19
+### Added
+* Support for `ETag` and `Last-Modified` headers in feed responses
+
 ## [0.3.3] - 2022-08-31
 ### Fixed
 * Feed entries can now be deleted. [#1](https://github.com/codemicro/walrss/issues/1)
