@@ -44,13 +44,21 @@ type Feed struct {
 	UserID string `bun:"user_id,notnull"`
 
 	LastEtag      string `bun:"last_etag,nullzero"`
+	LastModified  string `bun:"last_modified,nullzero"`
 	CachedContent string `bun:"cached_content,nullzero"`
 
 	User *User `bun:",rel:belongs-to,join:user_id=id"`
 }
 
 func (f *Feed) CacheWithEtag(etag, content string) {
+	f.LastModified = ""
 	f.LastEtag = etag
+	f.CachedContent = content
+}
+
+func (f *Feed) CacheWithLastModified(lastModified, content string) {
+	f.LastEtag = ""
+	f.LastModified = lastModified
 	f.CachedContent = content
 }
 

@@ -174,7 +174,7 @@ func getFeedContent(st *state.State, f *db.Feed) (*gofeed.Feed, error) {
 
 	requestBuilder := requests.URL(f.URL).ToBytesBuffer(buf).UserAgent(getUserAgent(st)).CopyHeaders(headers)
 
-	if f.LastEtag != "" {
+	if f.LastEtag != "" || f.LastModified != "" {
 		requestBuilder.AddValidator(
 			func(resp *http.Response) error {
 				if resp.StatusCode == http.StatusNotModified {
@@ -185,7 +185,13 @@ func getFeedContent(st *state.State, f *db.Feed) (*gofeed.Feed, error) {
 				}
 			},
 		)
-		requestBuilder.Header("If-None-Match", f.LastEtag)
+
+		if f.LastEtag != "" {
+			requestBuilder.Header("If-None-Match", f.LastEtag)
+		} else if f.LastModified != "" {
+			requestBuilder.Header("If-Modified-Since", f.LastModified)
+		}
+
 	} else {
 		requestBuilder.AddValidator(requests.DefaultValidator) // Since we're using CopyHeaders, we need to add the
 		// default validator back ourselves.
@@ -198,14 +204,17 @@ func getFeedContent(st *state.State, f *db.Feed) (*gofeed.Feed, error) {
 	if notModified {
 		log.Debug().Msgf("%s not modified", f.URL)
 		buf.WriteString(f.CachedContent)
-	} else {
-		log.Debug().Msgf("%s modified", f.URL)
-		etag := headers.Get("ETag")
-		if etag != "" {
-			f.CacheWithEtag(etag, buf.String())
-			if err := core.UpdateFeed(st, f); err != nil {
-				return nil, fmt.Errorf("failed to cache ETag-ed response: %v", err)
-			}
+	} else if etag := headers.Get("ETag"); etag != "" {
+		log.Debug().Msgf("%s modified (ETag)", f.URL)
+		f.CacheWithEtag(etag, buf.String())
+		if err := core.UpdateFeed(st, f); err != nil {
+			return nil, fmt.Errorf("failed to cache ETag-ed response: %v", err)
+		}
+	} else if lastModified := headers.Get("Last-Modified"); lastModified != "" {
+		log.Debug().Msgf("%s modified (Last-Modified)", f.URL)
+		f.CacheWithLastModified(lastModified, buf.String())
+		if err := core.UpdateFeed(st, f); err != nil {
+			return nil, fmt.Errorf("failed to cache Last-Modified enabled response: %v", err)
 		}
 	}
 

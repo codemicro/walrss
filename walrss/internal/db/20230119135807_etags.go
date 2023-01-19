@@ -38,7 +38,7 @@ func init() {
 
 			for _, query := range queries {
 				if _, err := db.ExecContext(ctx, query); err != nil {
-					if !strings.Contains(err.Error(), "no such column2") {
+					if !strings.Contains(err.Error(), "no such column") {
 						return err
 					}
 				}
