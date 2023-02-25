@@ -21,7 +21,7 @@ require (
 	github.com/uptrace/bun/extra/bundebug v1.1.7
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/quicktemplate v1.7.0
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
+	golang.org/x/crypto v0.1.0
 	golang.org/x/oauth2 v0.0.0-20220808172628-8227340efae7
 )
 
