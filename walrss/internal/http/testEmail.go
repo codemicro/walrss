@@ -66,11 +66,14 @@ func (s *Server) testEmailStatus(ctx *fiber.Ctx) error {
 	testEmailStatesLock.RLock()
 	var content string
 	if end {
+		testEmailStatesLock.RUnlock()
+		testEmailStatesLock.Lock()
 		delete(testEmailStates, currentUserID)
+		testEmailStatesLock.Unlock()
 	} else {
 		content = testEmailStates[currentUserID]
+		testEmailStatesLock.RUnlock()
 	}
-	defer testEmailStatesLock.RUnlock()
 
 	if end {
 		ctx.Set("HX-Refresh", "true")
