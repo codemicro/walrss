@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="main.css">
+    <title>Walrss</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<!-- Top bar -->
+<script>
+    const toggleMobileMenu = () => {
+        document.getElementById("mobile-menu-cover").classList.toggle("open");
+        document.getElementById("menu-panel").classList.toggle("open");
+    };
+</script>
+<ul id="bar">
+    <li><a href="/">Walrss</a></li>
+    <li class="float-right mobile-only"><span onclick="toggleMobileMenu()"><i class="bi bi-three-dots"></i></span></li>
+</ul>
+
+<!-- Left menu panel -->
+<ul id="menu-panel">
+    <li><a href="#"><i class="bi bi-rss-fill"></i> My Feeds</a></li>
+    <li class="active"><a class="active" href="#"><i class="bi bi-gear-fill"></i> Settings</a></li>
+    <li><a href="#"><i class="bi bi-person-fill"></i> Account</a></li>
+    <li><a href="#"><i class="bi bi-door-open-fill"></i> Sign out</a></li>
+</ul>
+
+<div id="mobile-menu-cover" onclick="toggleMobileMenu()"></div>
+
+<main>
+    <div class="container">
+        <h1 class="title"><i class="bi bi-rss-fill"></i> My Feeds</h1>
+
+        <div class="card">
+            <div class="tabs">
+                <div class="tab">(no category)</div>
+                <div class="tab active">YouTube</div>
+                <div class="tab">Blogs</div>
+                <div class="tab">+</div>
+                <div class="filler-line"></div>
+            </div>
+            <div class="tab-box">
+                <div class="flex-horizontal">
+                    <span>Category settings</span>
+                    <button class="button inline">Edit</button>
+                    <button class="button inline">Delete</button>
+                </div>
+
+                <hr>
+
+                <div class="max-height">
+                    <table class="table">
+                        <tr>
+                            <td>Andreas Kling</td>
+                            <td>https://awesomekling.substack.com/feed</td>
+                            <td><div class="flex-horizontal float-right"><button class="button inline">Edit</button><button class="button inline">Delete</button></div></td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <h1 class="title"><i class="bi bi-gear-fill"></i> Settings</h1>
+
+        <div class="card">
+            <h2>Delivery Controls</h2>
+
+            <form action="">
+                <input type="checkbox" name="" id="f"><label for="f">Enable digest delivery</label>
+            </form>
+
+            <div class="pt"></div>
+
+            <form action="">
+                Deliver my digests
+                <select name="day" id="day-selector">
+                    <option value="cheeze">Cheese</option>
+                </select>
+                at
+                <select name="time" id="time-selector">
+                    <option value="5am">5am</option>
+                </select>
+                UTC
+                <button class="button inline">Save</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Import and Export</h2>
+            <p>You can import and export your feeds as OPML files using the buttons below. This will allow you to move your feed collection between different feed readers and processors.</p>
+            <p><span class="warning-text">WARNING:</span> you have at least one JSON feed in your feed collection. These will be included in the OPML export, but may cause issues when being imported into other feed readers.</p>
+        </div>
+
+        <div class="card">
+            <h2>Sample buttons</h2>
+            <p>This is a normal button: <button class="button">Hello!</button></p>
+            <p>This is a normal, inline button: <button class="button inline">Hi there!</button></p>
+            <p>This is a red button: <button class="button red">Hello!</button></p>
+            <p>This is a red, inline button: <button class="button red inline">Hi there!</button></p>
+            <p>This is a green button: <button class="button green">Hello!</button></p>
+            <p>This is a green, inline button: <button class="button inline green">Hi there!</button></p>
+        </div>
+    </div>
+</main>
+
+<!--<div id="loading">-->
+<!--    <div id="spinner"></div>-->
+<!--</div>-->
+
+<div id="toast" class="warning">
+    <span class="icon"><i class="ok bi bi-check-lg"></i><i class="warning bi bi-x"></i></span>
+    <span id="toast-text">o lawd</span>
+</div>
+
+<!--<div class="modal">-->
+<!--    <div class="content">-->
+<!--        <p>Hello world!</p>-->
+<!--    </div>-->
+<!--</div>-->
+
+<script>
+    const toastElem = document.getElementById("toast");
+
+    const showToast = (text) => {
+        document.getElementById("toast-text").innerText = text;
+
+        let triggered = false;
+        let timeoutID = undefined;
+        const close = () => {
+            if (!triggered) {
+                triggered = true;
+                toastElem.classList.remove("show");
+            }
+            document.removeEventListener("click", close);
+            clearTimeout(timeoutID);
+        };
+
+        toastElem.addEventListener("click", close);
+        timeoutID = setTimeout(close, 2000);
+
+        toastElem.classList.add("show");
+    };
+
+    const showOkToast = (text) => {
+        toastElem.classList.remove("warning");
+        showToast(text);
+    };
+
+    const showWarningToast = (text) => {
+        toastElem.classList.add("warning");
+        showToast(text);
+    };
+</script>
+
+</body>
+</html>
