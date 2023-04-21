@@ -29,6 +29,7 @@ const (
 
 	New         = "/new"
 	NewFeedItem = New + "/feed"
+	NewCategory = New + "/category"
 
 	SendTestEmail   = "/send/test"
 	TestEmailStatus = SendTestEmail + "/status"

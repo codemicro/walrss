@@ -116,6 +116,8 @@ func (s *Server) registerHandlers() {
 
 	s.app.Get(urls.NewFeedItem, s.newFeedItem)
 	s.app.Post(urls.NewFeedItem, s.newFeedItem)
+	s.app.Get(urls.NewCategory, s.newCategory)
+	s.app.Post(urls.NewCategory, s.newCategory)
 
 	s.app.Post(urls.SendTestEmail, s.sendTestEmail)
 	s.app.Get(urls.TestEmailStatus, s.testEmailStatus)

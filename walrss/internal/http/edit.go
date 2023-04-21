@@ -114,13 +114,13 @@ func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
 		//return ctx.SendString(views.RenderFeedRow(feed.ID, feed.Name, feed.URL))
 	}
 
-	feeds, err := core.GetFeedsForUser(s.state, currentUserID)
+	// TODO: Set category
+	resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, "", true)
 	if err != nil {
 		return err
 	}
 	fragmentEmitSuccess(ctx)
-	// TODO: Set activeCategory
-	return ctx.SendString(daz.H("div")() + neoviews.RenderFeedTabsAndTable(feeds, "", true))
+	return ctx.SendString(daz.H("div")() + resp)
 }
 
 func (s *Server) cancelEditFeedItem(ctx *fiber.Ctx) error {

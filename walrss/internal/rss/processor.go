@@ -86,7 +86,7 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 	}()
 
 	reportProgress(progressChannel, "Fetching feed list")
-	userFeeds, err := core.GetFeedsForUser(st, user.ID)
+	userFeeds, err := core.GetFeeds(st, &core.GetFeedsArgs{UserID: user.ID})
 	if err != nil {
 		return err
 	}

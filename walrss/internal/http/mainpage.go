@@ -17,7 +17,13 @@ func (s *Server) mainPage(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	feeds, err := core.GetFeedsForUser(s.state, currentUserID)
+	var x string
+	feeds, err := core.GetFeeds(s.state, &core.GetFeedsArgs{UserID: currentUserID, CategoryID: &x})
+	if err != nil {
+		return err
+	}
+
+	cats, err := core.GetCategoriesForUser(s.state, currentUserID)
 	if err != nil {
 		return err
 	}
@@ -26,5 +32,6 @@ func (s *Server) mainPage(ctx *fiber.Ctx) error {
 	return ctx.SendString(neoviews.FeedsPage(&neoviews.FeedsPageArgs{
 		DigestsEnabled: user.Active,
 		Feeds:          feeds,
+		Categories:     cats,
 	}))
 }

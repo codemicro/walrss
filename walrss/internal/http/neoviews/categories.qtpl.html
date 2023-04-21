@@ -1,0 +1,18 @@
+{% import "github.com/codemicro/walrss/walrss/internal/urls" %}
+{% import "github.com/codemicro/walrss/walrss/internal/http/neoviews/internal/components" %}
+
+{% func FragmentNewCategory() %}
+{%= components.BeginModal() %}
+<h2><i class="bi bi-pencil-square"></i> Create New Category</h2>
+<form>
+    <div class="form-grid">
+        <label for="new-category-name">Category name</label>
+        <input type="text" id="new-category-name" name="name" placeholder="Name">
+    </div>
+    <div class="flex-horizontal pt">
+        <button class="button green" hx-post="{%s urls.NewCategory %}" hx-target="#modal-target">Submit</button>
+        <button class="button red" hx-get="{%s urls.CancelModal %}" hx-target="#modal-target">Cancel</button>
+    </div>
+</form>
+{%= components.EndModal() %}
+{% endfunc %}

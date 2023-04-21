@@ -42,3 +42,15 @@ func validateURL(inputURL string) error {
 	}
 	return nil
 }
+
+func validateCategoryName(name string) error {
+	if len(name) == 0 {
+		return NewUserError("cannot have an empty category name")
+	}
+
+	if len(name) >= 128 {
+		return NewUserError("category name too long - maximum length 128 characters")
+	}
+
+	return nil
+}

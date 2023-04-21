@@ -2,7 +2,10 @@ package neoviews
 
 import (
 	"embed"
+	"fmt"
+	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/http/neoviews/internal/components"
+	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"net/http"
@@ -54,4 +57,25 @@ func GetStaticHandler() fiber.Handler {
 		Root:       http.FS(statics),
 		PathPrefix: "static",
 	})
+}
+
+func RenderFeedTabsAndTableForUser(st *state.State, userID string, currentCategoryID string, oob bool) (string, error) {
+	_, err := core.GetCategory(st, currentCategoryID)
+	if err != nil {
+		currentCategoryID = ""
+	}
+
+	feeds, err := core.GetFeeds(st, &core.GetFeedsArgs{UserID: userID, CategoryID: &currentCategoryID})
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println(feeds)
+
+	categories, err := core.GetCategoriesForUser(st, userID)
+	if err != nil {
+		return "", err
+	}
+
+	return RenderFeedTabsAndTable(feeds, categories, currentCategoryID, oob), nil
 }

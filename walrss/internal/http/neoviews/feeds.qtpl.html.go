@@ -25,6 +25,7 @@ type FeedsPageArgs struct {
 	SelectedDay    db.SendDay
 	SelectedTime   int
 	Feeds          []*db.Feed
+	Categories     []*db.Category
 }
 
 func StreamFeedsPage(qw422016 *qt422016.Writer, args *FeedsPageArgs) {
@@ -55,7 +56,7 @@ func StreamFeedsPage(qw422016 *qt422016.Writer, args *FeedsPageArgs) {
 	}
 	qw422016.N().S(`
         `)
-	StreamRenderFeedTabsAndTable(qw422016, args.Feeds, "", false)
+	StreamRenderFeedTabsAndTable(qw422016, args.Feeds, args.Categories, "", false)
 	qw422016.N().S(`
     </div>
 </div>
@@ -88,7 +89,7 @@ func FeedsPage(args *FeedsPageArgs) string {
 	return qs422016
 }
 
-func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, activeCategory string, oob bool) {
+func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, categories []*db.Category, activeCategoryID string, oob bool) {
 	qw422016.N().S(`
     <div id="feeds" `)
 	if oob {
@@ -97,11 +98,26 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, a
 	qw422016.N().S(`>
         <div class="tabs">
             <div class="tab `)
-	if activeCategory == "" {
+	if activeCategoryID == "" {
 		qw422016.N().S(`active`)
 	}
 	qw422016.N().S(`">(no category)</div>
-            <div class="tab">+</div>
+            `)
+	for _, category := range categories {
+		qw422016.N().S(`
+                <div class="tab `)
+		if category.ID == activeCategoryID {
+			qw422016.N().S(`active`)
+		}
+		qw422016.N().S(`">`)
+		qw422016.E().S(category.Name)
+		qw422016.N().S(`</div>
+            `)
+	}
+	qw422016.N().S(`
+            <div class="tab" hx-get="`)
+	qw422016.E().S(urls.NewCategory)
+	qw422016.N().S(`" hx-target="#modal-target">+</div>
             <div class="filler-line"></div>
         </div>
         <div class="tab-box">
@@ -113,7 +129,7 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, a
                         hx-target="#modal-target"
                 >Add new feed</button>
                 `)
-	if activeCategory != "" {
+	if activeCategoryID != "" {
 		qw422016.N().S(`
                     <button class="button">Edit category</button>
                     <button class="button">Delete category</button>
@@ -169,15 +185,15 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, a
 `)
 }
 
-func WriteRenderFeedTabsAndTable(qq422016 qtio422016.Writer, feeds []*db.Feed, activeCategory string, oob bool) {
+func WriteRenderFeedTabsAndTable(qq422016 qtio422016.Writer, feeds []*db.Feed, categories []*db.Category, activeCategoryID string, oob bool) {
 	qw422016 := qt422016.AcquireWriter(qq422016)
-	StreamRenderFeedTabsAndTable(qw422016, feeds, activeCategory, oob)
+	StreamRenderFeedTabsAndTable(qw422016, feeds, categories, activeCategoryID, oob)
 	qt422016.ReleaseWriter(qw422016)
 }
 
-func RenderFeedTabsAndTable(feeds []*db.Feed, activeCategory string, oob bool) string {
+func RenderFeedTabsAndTable(feeds []*db.Feed, categories []*db.Category, activeCategoryID string, oob bool) string {
 	qb422016 := qt422016.AcquireByteBuffer()
-	WriteRenderFeedTabsAndTable(qb422016, feeds, activeCategory, oob)
+	WriteRenderFeedTabsAndTable(qb422016, feeds, categories, activeCategoryID, oob)
 	qs422016 := string(qb422016.B)
 	qt422016.ReleaseByteBuffer(qb422016)
 	return qs422016

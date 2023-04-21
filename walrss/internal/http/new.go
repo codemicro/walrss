@@ -26,19 +26,47 @@ func (s *Server) newFeedItem(ctx *fiber.Ctx) error {
 			ctx.FormValue("name"),
 			ctx.FormValue("url"),
 		)
-
 		if err != nil {
 			return err
 		}
 
-		feeds, err := core.GetFeedsForUser(s.state, currentUserID)
+		// TODO: Set category
+		resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, "", true)
 		if err != nil {
 			return err
 		}
-
 		fragmentEmitSuccess(ctx)
-		// TODO: Set activeCategory
-		return ctx.SendString(daz.H("div")() + neoviews.RenderFeedTabsAndTable(feeds, "", true))
+		return ctx.SendString(daz.H("div")() + resp)
+	}
+
+	panic("unreachable")
+}
+
+func (s *Server) newCategory(ctx *fiber.Ctx) error {
+	currentUserID := getCurrentUserID(ctx)
+	if currentUserID == "" {
+		return requestFragmentSignIn(ctx, urls.Index)
+	}
+
+	switch ctx.Method() {
+	case fiber.MethodGet:
+		return ctx.SendString(neoviews.FragmentNewCategory())
+	case fiber.MethodPost:
+		newCat, err := core.NewCategory(
+			s.state,
+			currentUserID,
+			ctx.FormValue("name"),
+		)
+		if err != nil {
+			return err
+		}
+
+		resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, newCat.ID, true)
+		if err != nil {
+			return err
+		}
+		fragmentEmitSuccess(ctx)
+		return ctx.SendString(daz.H("div")() + resp)
 	}
 
 	panic("unreachable")

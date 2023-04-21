@@ -38,16 +38,18 @@ type User struct {
 type Feed struct {
 	bun.BaseModel `bun:"table:feeds"`
 
-	ID     string `bun:"id,pk"`
-	URL    string `bun:"url,notnull"`
-	Name   string `bun:"name,notnull"`
-	UserID string `bun:"user_id,notnull"`
+	ID         string `bun:"id,pk"`
+	URL        string `bun:"url,notnull"`
+	Name       string `bun:"name,notnull"`
+	UserID     string `bun:"user_id,notnull"`
+	CategoryID string `bun:"category_id,nullzero"`
 
 	LastEtag      string `bun:"last_etag,nullzero"`
 	LastModified  string `bun:"last_modified,nullzero"`
 	CachedContent string `bun:"cached_content,nullzero"`
 
-	User *User `bun:",rel:belongs-to,join:user_id=id"`
+	User     *User     `bun:",rel:belongs-to,join:user_id=id"`
+	Category *Category `bun:",rel:belongs-to,join:category_id=id"`
 }
 
 func (f *Feed) CacheWithEtag(etag, content string) {
@@ -74,4 +76,14 @@ func (f FeedSlice) Less(i, j int) bool {
 
 func (f FeedSlice) Swap(i, j int) {
 	f[i], f[j] = f[j], f[i]
+}
+
+type Category struct {
+	bun.BaseModel `bun:"table:categories"`
+
+	ID     string `bun:"id,pk"`
+	Name   string `bun:"name,notnull"`
+	UserID string `bun:"user_id,notnull"`
+
+	User *User `bun:",rel:belongs-to,join:user_id=id"`
 }

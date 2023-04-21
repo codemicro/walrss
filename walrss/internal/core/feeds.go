@@ -33,12 +33,30 @@ func NewFeed(st *state.State, userID, name, url string) (*db.Feed, error) {
 	return feed, nil
 }
 
-func GetFeedsForUser(st *state.State, userID string) (res []*db.Feed, err error) {
-	err = st.Data.NewSelect().
-		Model(&res).
-		Relation("User").
-		Where("Feed.user_id = ?", userID).
-		Scan(context.Background())
+type GetFeedsArgs struct {
+	UserID     string
+	CategoryID *string
+}
+
+func GetFeeds(st *state.State, args *GetFeedsArgs) (res []*db.Feed, err error) {
+	q := st.Data.NewSelect().
+		Model(&res)
+
+	if args.UserID != "" {
+		q = q.Relation("User")
+		q = q.Where("Feed.user_id = ?", args.UserID)
+	}
+
+	if args.CategoryID != nil {
+		q = q.Relation("Category")
+		if *args.CategoryID == "" {
+			q = q.Where("Feed.category_id = NULL")
+		} else {
+			q = q.Where("Feed.category_id = ?", *args.CategoryID)
+		}
+	}
+
+	err = q.Scan(context.Background())
 	return
 }
 
@@ -99,7 +117,7 @@ func ImportFeedsForUser(st *state.State, userID string, opmlXML []byte) error {
 	// duplicates
 	existingURLs := make(map[string]struct{})
 	{
-		feeds, err := GetFeedsForUser(st, userID)
+		feeds, err := GetFeeds(st, &GetFeedsArgs{UserID: userID})
 		if err != nil {
 			return err
 		}
