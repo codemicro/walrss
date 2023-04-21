@@ -3,9 +3,11 @@ package http
 import (
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/db"
+	"github.com/codemicro/walrss/walrss/internal/http/neoviews"
 	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
+	"github.com/stevelacy/daz"
 	"strconv"
 	"strings"
 )
@@ -97,12 +99,11 @@ func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
 
 	switch ctx.Method() {
 	case fiber.MethodGet:
-		return ctx.SendString(views.RenderFeedEditRow(feed.ID, feed.Name, feed.URL))
+		return ctx.SendString(neoviews.FragmentEditFeed(feed))
 	case fiber.MethodDelete:
 		if err := core.DeleteFeed(s.state, feed.ID); err != nil {
 			return err
 		}
-		return nil
 	case fiber.MethodPut:
 		feed.Name = ctx.FormValue("name")
 		feed.URL = ctx.FormValue("url")
@@ -110,10 +111,16 @@ func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
 		if err := core.UpdateFeed(s.state, feed); err != nil {
 			return err
 		}
-		return ctx.SendString(views.RenderFeedRow(feed.ID, feed.Name, feed.URL))
+		//return ctx.SendString(views.RenderFeedRow(feed.ID, feed.Name, feed.URL))
 	}
 
-	panic("unreachable")
+	feeds, err := core.GetFeedsForUser(s.state, currentUserID)
+	if err != nil {
+		return err
+	}
+	fragmentEmitSuccess(ctx)
+	// TODO: Set activeCategory
+	return ctx.SendString(daz.H("div")() + neoviews.RenderFeedTabsAndTable(feeds, "", true))
 }
 
 func (s *Server) cancelEditFeedItem(ctx *fiber.Ctx) error {

@@ -2,7 +2,7 @@ package http
 
 import (
 	"github.com/codemicro/walrss/walrss/internal/core"
-	"github.com/codemicro/walrss/walrss/internal/http/views"
+	"github.com/codemicro/walrss/walrss/internal/http/neoviews"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -22,10 +22,9 @@ func (s *Server) mainPage(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return views.SendPage(ctx, &views.MainPage{
-		EnableDigests: user.Active,
-		SelectedDay:   user.ScheduleDay,
-		SelectedTime:  user.ScheduleHour,
-		Feeds:         feeds,
-	})
+	ctx.Type("html")
+	return ctx.SendString(neoviews.FeedsPage(&neoviews.FeedsPageArgs{
+		DigestsEnabled: user.Active,
+		Feeds:          feeds,
+	}))
 }

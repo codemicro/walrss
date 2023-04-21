@@ -33,7 +33,9 @@ const (
 	SendTestEmail   = "/send/test"
 	TestEmailStatus = SendTestEmail + "/status"
 
-	Statics = "/statics"
+	CancelModal = "/cancelmodal"
+
+	Statics = "/assets"
 )
 
 func Expand(template string, replacements ...interface{}) string {

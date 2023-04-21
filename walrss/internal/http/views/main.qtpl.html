@@ -152,7 +152,7 @@
 {% func RenderFeedRow(id, name, url string) %}
 <tr id="feed-{%s= id %}" class="align-middle" hx-target="this" hx-swap="outerHTML">
     <th id="feed-{%s= id %}-name" scope="row">{%s name %}</th>
-    <td id="feed-{%s= id %}-url" >{%s url %}</td>
+    <td id="feed-{%s= id %}-url">{%s url %}</td>
     <td>
         <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
             <button type="button" class="btn btn-outline-primary" hx-get="{%s= urls.Expand(urls.EditFeedItem, id) %}">

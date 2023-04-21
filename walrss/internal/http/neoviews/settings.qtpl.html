@@ -1,0 +1,49 @@
+{% import "github.com/codemicro/walrss/walrss/internal/http/neoviews/internal/components" %}
+
+{% func SettingsPage() %}
+<!DOCTYPE html>
+<html lang="en">
+{%= components.Head("Settings") %}
+<body>
+{%= components.Navigation(menuItems, menuItemSettings) %}
+
+{%= components.BeginMain() %}
+
+<div class="container">
+    <h1 class="title"><i class="bi bi-gear-fill"></i> Settings</h1>
+
+    <div class="card">
+        <h2>Delivery Controls</h2>
+
+        <form action="">
+            <input type="checkbox" name="" id="f"><label for="f">Enable digest delivery</label>
+        </form>
+
+        <div class="pt"></div>
+
+        <form action="">
+            Deliver my digests
+            <select name="day" id="day-selector">
+                <option value="cheeze">Cheese</option>
+            </select>
+            at
+            <select name="time" id="time-selector">
+                <option value="5am">5am</option>
+            </select>
+            UTC
+            <button class="button inline">Save</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Import and Export</h2>
+        <p>You can import and export your feeds as OPML files using the buttons below. This will allow you to move your feed collection between different feed readers and processors.</p>
+        <p><span class="warning-text">WARNING:</span> you have at least one JSON feed in your feed collection. These will be included in the OPML export, but may cause issues when being imported into other feed readers.</p>
+    </div>
+</div>
+
+{%= components.EndMain() %}
+
+</body>
+</html>
+{% endfunc %}

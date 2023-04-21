@@ -3,9 +3,9 @@ package http
 import (
 	"context"
 	"github.com/codemicro/walrss/walrss/internal/core"
+	"github.com/codemicro/walrss/walrss/internal/http/neoviews"
 	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/state"
-	"github.com/codemicro/walrss/walrss/internal/static"
 	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/coreos/go-oidc"
 	"github.com/gofiber/fiber/v2"
@@ -123,16 +123,14 @@ func (s *Server) registerHandlers() {
 	s.app.Get(urls.ExportAsOPML, s.exportAsOPML)
 	s.app.Post(urls.ImportFromOPML, s.importFromOPML)
 
-	s.app.Use(urls.Statics, static.NewHandler())
+	s.app.Get(urls.CancelModal, func(*fiber.Ctx) error { return nil })
+
+	s.app.Use(urls.Statics, neoviews.GetStaticHandler())
+	//s.app.Use(urls.Statics, static.NewHandler())
 }
 
 func (s *Server) Run() error {
 	return s.app.Listen(s.state.Config.GetHTTPAddress())
-}
-
-func userErrorToResponse(ctx *fiber.Ctx, ue core.UserError) error {
-	ctx.Status(ue.Status)
-	return ctx.SendString(ue.Error())
 }
 
 func getCurrentUserID(ctx *fiber.Ctx) string {

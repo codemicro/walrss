@@ -2,9 +2,10 @@ package http
 
 import (
 	"github.com/codemicro/walrss/walrss/internal/core"
-	"github.com/codemicro/walrss/walrss/internal/http/views"
+	"github.com/codemicro/walrss/walrss/internal/http/neoviews"
 	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
+	"github.com/stevelacy/daz"
 )
 
 func (s *Server) newFeedItem(ctx *fiber.Ctx) error {
@@ -16,9 +17,10 @@ func (s *Server) newFeedItem(ctx *fiber.Ctx) error {
 
 	switch ctx.Method() {
 	case fiber.MethodGet:
-		return ctx.SendString(views.RenderNewFeedItemRow())
+		return ctx.SendString(neoviews.FragmentNewFeed())
+		//return ctx.SendString(views.RenderNewFeedItemRow())
 	case fiber.MethodPost:
-		feed, err := core.NewFeed(
+		_, err := core.NewFeed(
 			s.state,
 			currentUserID,
 			ctx.FormValue("name"),
@@ -29,7 +31,14 @@ func (s *Server) newFeedItem(ctx *fiber.Ctx) error {
 			return err
 		}
 
-		return ctx.SendString(views.RenderFeedRow(feed.ID, feed.Name, feed.URL))
+		feeds, err := core.GetFeedsForUser(s.state, currentUserID)
+		if err != nil {
+			return err
+		}
+
+		fragmentEmitSuccess(ctx)
+		// TODO: Set activeCategory
+		return ctx.SendString(daz.H("div")() + neoviews.RenderFeedTabsAndTable(feeds, "", true))
 	}
 
 	panic("unreachable")

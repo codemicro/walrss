@@ -1,0 +1,21 @@
+{% import "github.com/codemicro/walrss/walrss/internal/urls" %}
+
+{% func Head(title string) %}
+<head>
+  <meta charset="UTF-8">
+  <title>{%s= makeTitle(title) %}</title>
+  <link rel="stylesheet" href="{%s urls.Statics %}/main.css">
+  <script src="{%s urls.Statics %}/htmx-1.9.0.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+{% endfunc %}
+
+
+{% func BeginMain() %}
+<main>
+{% endfunc %}
+
+{% func EndMain() %}
+<p class="text-center"><a href="https://github.com/codemicro/walrss" target="_blank" rel="noopener noreferrer">Walrss is open-source software</a> that's licensed under the <a href="https://github.com/codemicro/walrss/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">GNU AGPL v3.</a></p>
+</main>
+{% endfunc %}

@@ -30,6 +30,9 @@ func validateFeedName(name string) error {
 }
 
 func validateURL(inputURL string) error {
+	if len(strings.TrimSpace(inputURL)) == 0 {
+		return NewUserError("missing URL")
+	}
 	u, err := url.ParseRequestURI(inputURL)
 	if err != nil {
 		return NewUserError("invalid URL")

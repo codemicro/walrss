@@ -1,0 +1,130 @@
+{% import "github.com/codemicro/walrss/walrss/internal/db" %}
+{% import "github.com/codemicro/walrss/walrss/internal/urls" %}
+{% import "github.com/codemicro/walrss/walrss/internal/http/neoviews/internal/components" %}
+
+{% code
+type FeedsPageArgs struct {
+    DigestsEnabled bool
+    SelectedDay db.SendDay
+    SelectedTime int
+    Feeds []*db.Feed
+}
+%}
+
+{% func FeedsPage(args *FeedsPageArgs) %}
+<!DOCTYPE html>
+<html lang="en">
+{%= components.Head("Feeds") %}
+<body>
+{%= components.Navigation(menuItems, menuItemFeeds) %}
+
+{%= components.BeginMain() %}
+
+<div class="container">
+    <h1 class="title"><i class="bi bi-rss-fill"></i> My Feeds</h1>
+
+    <div class="card">
+        {% if !args.DigestsEnabled %}
+            <p style="margin-top: 0;"><span class="warning-text">Warning:</span> you have digests disabled. No emails will be sent until you re-enable digests in your settings.</p>
+        {% endif %}
+        {%= RenderFeedTabsAndTable(args.Feeds, "", false) %}
+    </div>
+</div>
+
+{%= components.EndMain() %}
+
+<div id="modal-target"></div>
+{%= components.Toast() %}
+
+</body>
+</html>
+{% endfunc %}
+
+{% func RenderFeedTabsAndTable(feeds []*db.Feed, activeCategory string, oob bool) %}
+    <div id="feeds" {% if oob %}hx-swap-oob="outerHTML"{% endif %}>
+        <div class="tabs">
+            <div class="tab {% if activeCategory == "" %}active{% endif %}">(no category)</div>
+            <div class="tab">+</div>
+            <div class="filler-line"></div>
+        </div>
+        <div class="tab-box">
+            <div class="flex-horizontal">
+                <button class="button green"
+                        hx-get="{%s urls.NewFeedItem %}"
+                        hx-target="#modal-target"
+                >Add new feed</button>
+                {% if activeCategory != "" %}
+                    <button class="button">Edit category</button>
+                    <button class="button">Delete category</button>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            {% if len(feeds) == 0 %}
+            <p><i>There's nothing here!</i></p>
+            {% endif %}
+
+            <table class="table">
+                {% for _, feed := range feeds %}
+                <tr>
+                    <td>{%s feed.Name %}</td>
+                    <td>{%s feed.URL %}</td>
+                    <td>
+                        <div class="flex-horizontal float-right">
+                            <button class="button inline"
+                                hx-get="{%s= urls.Expand(urls.EditFeedItem, feed.ID) %}"
+                                hx-target="#modal-target"
+                            >Edit</button>
+                            <button class="button inline"
+                                hx-delete="{%s= urls.Expand(urls.EditFeedItem, feed.ID) %}"
+                                hx-confirm="This will permanently delete this item. Are you sure?"
+                            >Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endfunc %}
+
+{% func FragmentNewFeed() %}
+    {%= components.BeginModal() %}
+    <h2><i class="bi bi-pencil-square"></i> Add New Feed</h2>
+    <p class="warning-text">// TODO: category</p>
+    <form>
+        <div class="form-grid">
+            <label for="new-feed-name">Feed name</label>
+            <input type="text" id="new-feed-name" name="name" placeholder="Name">
+
+            <label for="new-feed-url">Feed URL</label>
+            <input type="text" id="new-feed-url" name="url" placeholder="URL">
+        </div>
+        <div class="flex-horizontal pt">
+            <button class="button green" hx-post="{%s urls.NewFeedItem %}" hx-target="#modal-target">Submit</button>
+            <button class="button red" hx-get="{%s urls.CancelModal %}" hx-target="#modal-target">Cancel</button>
+        </div>
+    </form>
+    {%= components.EndModal() %}
+{% endfunc %}
+
+{% func FragmentEditFeed(feed *db.Feed) %}
+    {%= components.BeginModal() %}
+    <h2><i class="bi bi-pencil-square"></i> Edit Feed</h2>
+    <p class="warning-text">// TODO: category</p>
+    <form>
+        <div class="form-grid">
+            <label for="edit-feed-name">Feed name</label>
+            <input type="text" id="edit-feed-name" name="name" placeholder="Name" value="{%s feed.Name %}">
+
+            <label for="edit-feed-url">Feed URL</label>
+            <input type="text" id="edit-feed-url" name="url" placeholder="URL" value="{%s feed.URL %}">
+        </div>
+        <div class="flex-horizontal pt">
+            <button class="button green" hx-put="{%s urls.Expand(urls.EditFeedItem, feed.ID) %}" hx-target="#modal-target">Submit</button>
+            <button class="button red" hx-get="{%s urls.CancelModal %}" hx-target="#modal-target">Cancel</button>
+        </div>
+    </form>
+    {%= components.EndModal() %}
+{% endfunc %}

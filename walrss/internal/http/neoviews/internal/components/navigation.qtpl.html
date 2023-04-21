@@ -1,0 +1,25 @@
+{% func Navigation(menuItems []*MenuItem, active *MenuItem) %}
+<script>
+  const toggleMobileMenu = () => {
+    document.getElementById("mobile-menu-cover").classList.toggle("open");
+    document.getElementById("menu-panel").classList.toggle("open");
+  };
+</script>
+
+<ul id="bar">
+  <li><a href="/">Walrss</a></li>
+  <li class="float-right mobile-only"><span onclick="toggleMobileMenu()"><i class="bi bi-three-dots"></i></span></li>
+</ul>
+
+<ul id="menu-panel">
+  {% for _, item := range menuItems %}
+    {% if item == active %}
+      <li class="active"><a class="active" href="{%s item.Path %}"><i class="bi {%s item.Icon %}"></i> {%s item.Text %}</a></li>
+    {% else %}
+      <li><a href="{%s item.Path %}"><i class="bi {%s item.Icon %}"></i> {%s item.Text %}</a></li>
+    {% endif %}
+  {% endfor %}
+</ul>
+
+<div id="mobile-menu-cover" onclick="toggleMobileMenu()"></div>
+{% endfunc %}

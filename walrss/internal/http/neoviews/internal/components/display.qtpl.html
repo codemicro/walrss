@@ -1,0 +1,69 @@
+{% func Toast() %}
+<div id="toast" class="warning">
+  <span class="icon"><i class="ok bi bi-check-lg"></i><i class="warning bi bi-x"></i></span>
+  <span id="toast-text">o lawd</span>
+</div>
+
+<script>
+  const toastElem = document.getElementById("toast");
+
+  const showToast = (text) => {
+    document.getElementById("toast-text").innerText = text;
+
+    let triggered = false;
+    let timeoutID = undefined;
+    const close = () => {
+      if (!triggered) {
+        triggered = true;
+        toastElem.classList.remove("show");
+      }
+      document.removeEventListener("click", close);
+      clearTimeout(timeoutID);
+    };
+
+    toastElem.addEventListener("click", close);
+    timeoutID = setTimeout(close, 3000);
+
+    toastElem.classList.add("show");
+  };
+
+  const showOkToast = (text) => {
+    toastElem.classList.remove("warning");
+    showToast(text);
+  };
+
+  const showWarningToast = (text) => {
+    toastElem.classList.add("warning");
+    showToast(text);
+  };
+
+  document.body.addEventListener("htmx:sendError", function () {
+      showWarningToast("could not communicate with server");
+  });
+  document.body.addEventListener("htmx:responseError", function (evt) {
+      showWarningToast("Error: " + evt.detail.xhr.response)
+  });
+
+  document.body.addEventListener("successResponse", function () {
+      showOkToast("Success!")
+  })
+</script>
+{% endfunc %}
+
+
+{% func BeginModal() %}
+<div class="modal">
+    <div class="content">
+{% endfunc %}
+
+{% func EndModal() %}
+    </div>
+</div>
+{% endfunc %}
+
+
+{% func LoadingSpinner() %}
+<div id="loading">
+    <div id="spinner"></div>
+</div>
+{% endfunc %}
