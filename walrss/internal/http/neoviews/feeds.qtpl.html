@@ -44,9 +44,9 @@ type FeedsPageArgs struct {
 {% func RenderFeedTabsAndTable(feeds []*db.Feed, categories []*db.Category, activeCategoryID string, oob bool) %}
     <div id="feeds" {% if oob %}hx-swap-oob="outerHTML"{% endif %}>
         <div class="tabs">
-            <div class="tab {% if activeCategoryID == "" %}active{% endif %}">(no category)</div>
+            <div class="tab {% if activeCategoryID == "" %}active{% endif %}" hx-get="{%s urls.FeedCategoryTab %}" hx-target="#feeds" hx-swap="outerHTML">(no category)</div>
             {% for _, category := range categories %}
-                <div class="tab {% if category.ID == activeCategoryID %}active{% endif %}">{%s category.Name %}</div>
+                <div class="tab {% if category.ID == activeCategoryID %}active{% endif %}" hx-get="{%s urls.FeedCategoryTab %}?category={%s category.ID %}" hx-target="#feeds" hx-swap="outerHTML">{%s category.Name %}</div>
             {% endfor %}
             <div class="tab" hx-get="{%s urls.NewCategory %}" hx-target="#modal-target">+</div>
             <div class="filler-line"></div>
@@ -54,7 +54,7 @@ type FeedsPageArgs struct {
         <div class="tab-box">
             <div class="flex-horizontal">
                 <button class="button green"
-                        hx-get="{%s urls.NewFeedItem %}"
+                        hx-get="{%s urls.NewFeedItem %}?category={%s activeCategoryID %}"
                         hx-target="#modal-target"
                 >Add new feed</button>
                 {% if activeCategoryID != "" %}
@@ -77,11 +77,11 @@ type FeedsPageArgs struct {
                     <td>
                         <div class="flex-horizontal float-right">
                             <button class="button inline"
-                                hx-get="{%s= urls.Expand(urls.EditFeedItem, feed.ID) %}"
+                                hx-get="{%s urls.Expand(urls.EditFeedItem, feed.ID) %}{% if activeCategoryID != "" %}?category={%s activeCategoryID %}{% endif %}"
                                 hx-target="#modal-target"
                             >Edit</button>
                             <button class="button inline"
-                                hx-delete="{%s= urls.Expand(urls.EditFeedItem, feed.ID) %}"
+                                hx-delete="{%s urls.Expand(urls.EditFeedItem, feed.ID) %}{% if activeCategoryID != "" %}?category={%s activeCategoryID %}{% endif %}"
                                 hx-confirm="This will permanently delete this item. Are you sure?"
                             >Delete</button>
                         </div>
@@ -93,7 +93,14 @@ type FeedsPageArgs struct {
     </div>
 {% endfunc %}
 
-{% func FragmentNewFeed() %}
+{% code
+type FragmentNewFeedArgs struct {
+    CurrentCategoryID string
+    Categories []*db.Category
+}
+%}
+
+{% func FragmentNewFeed(args *FragmentNewFeedArgs) %}
     {%= components.BeginModal() %}
     <h2><i class="bi bi-pencil-square"></i> Add New Feed</h2>
     <p class="warning-text">// TODO: category</p>
@@ -104,6 +111,14 @@ type FeedsPageArgs struct {
 
             <label for="new-feed-url">Feed URL</label>
             <input type="text" id="new-feed-url" name="url" placeholder="URL">
+
+            <label for="new-feed-category">Category</label>
+            <select name="categoryID" id="new-feed-category">
+                <option value="" {% if args.CurrentCategoryID == "" %}selected{% endif %}>(no category)</option>
+                {% for _, cat := range args.Categories %}
+                <option value="{%s cat.ID %}" {% if args.CurrentCategoryID == cat.ID %}selected{% endif %}>{%s cat.Name %}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="flex-horizontal pt">
             <button class="button green" hx-post="{%s urls.NewFeedItem %}" hx-target="#modal-target">Submit</button>
@@ -113,20 +128,35 @@ type FeedsPageArgs struct {
     {%= components.EndModal() %}
 {% endfunc %}
 
-{% func FragmentEditFeed(feed *db.Feed) %}
+{% code
+type FragmentEditFeedArgs struct {
+    Feed *db.Feed
+    CurrentCategoryID string
+    Categories []*db.Category
+}
+%}
+
+{% func FragmentEditFeed(args *FragmentEditFeedArgs) %}
     {%= components.BeginModal() %}
     <h2><i class="bi bi-pencil-square"></i> Edit Feed</h2>
-    <p class="warning-text">// TODO: category</p>
     <form>
         <div class="form-grid">
             <label for="edit-feed-name">Feed name</label>
-            <input type="text" id="edit-feed-name" name="name" placeholder="Name" value="{%s feed.Name %}">
+            <input type="text" id="edit-feed-name" name="name" placeholder="Name" value="{%s args.Feed.Name %}">
 
             <label for="edit-feed-url">Feed URL</label>
-            <input type="text" id="edit-feed-url" name="url" placeholder="URL" value="{%s feed.URL %}">
+            <input type="text" id="edit-feed-url" name="url" placeholder="URL" value="{%s args.Feed.URL %}">
+
+            <label for="edit-feed-category">Category</label>
+            <select name="categoryID" id="edit-feed-category">
+                <option value="" {% if args.CurrentCategoryID == "" %}selected{% endif %}>(no category)</option>
+                {% for _, cat := range args.Categories %}
+                    <option value="{%s cat.ID %}" {% if args.CurrentCategoryID == cat.ID %}selected{% endif %}>{%s cat.Name %}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="flex-horizontal pt">
-            <button class="button green" hx-put="{%s urls.Expand(urls.EditFeedItem, feed.ID) %}" hx-target="#modal-target">Submit</button>
+            <button class="button green" hx-put="{%s urls.Expand(urls.EditFeedItem, args.Feed.ID) %}{% if args.CurrentCategoryID != "" %}?category={%s args.CurrentCategoryID %}{% endif %}" hx-target="#modal-target">Submit</button>
             <button class="button red" hx-get="{%s urls.CancelModal %}" hx-target="#modal-target">Cancel</button>
         </div>
     </form>

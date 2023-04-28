@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/codemicro/walrss/walrss/internal/state"
 	"net/url"
 	"regexp"
 	"strings"
@@ -52,5 +53,14 @@ func validateCategoryName(name string) error {
 		return NewUserError("category name too long - maximum length 128 characters")
 	}
 
+	return nil
+}
+
+func validateCategoryID(st *state.State, categoryID string) error {
+	if categoryID != "" {
+		if _, err := GetCategory(st, categoryID); err == ErrNotFound {
+			return NewUserError("unknown category ID")
+		}
+	}
 	return nil
 }

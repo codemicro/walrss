@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/http/neoviews"
 	"github.com/codemicro/walrss/walrss/internal/urls"
@@ -17,21 +18,30 @@ func (s *Server) newFeedItem(ctx *fiber.Ctx) error {
 
 	switch ctx.Method() {
 	case fiber.MethodGet:
-		return ctx.SendString(neoviews.FragmentNewFeed())
-		//return ctx.SendString(views.RenderNewFeedItemRow())
+		cats, err := core.GetCategoriesForUser(s.state, currentUserID)
+		if err != nil {
+			return fmt.Errorf("GET newFeedItem: %w", err)
+		}
+		return ctx.SendString(neoviews.FragmentNewFeed(&neoviews.FragmentNewFeedArgs{
+			CurrentCategoryID: ctx.Query("category"),
+			Categories:        cats,
+		}))
 	case fiber.MethodPost:
+		categoryID := ctx.FormValue("categoryID")
+
 		_, err := core.NewFeed(
 			s.state,
 			currentUserID,
 			ctx.FormValue("name"),
 			ctx.FormValue("url"),
+			categoryID,
 		)
 		if err != nil {
 			return err
 		}
 
 		// TODO: Set category
-		resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, "", true)
+		resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, categoryID, true)
 		if err != nil {
 			return err
 		}

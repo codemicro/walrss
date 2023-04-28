@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/db"
 	"github.com/codemicro/walrss/walrss/internal/http/neoviews"
@@ -91,6 +92,7 @@ func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
 	}
 
 	feedID := ctx.Params("id")
+	categoryID := ctx.Query("category")
 
 	feed, err := core.GetFeed(s.state, feedID)
 	if err != nil {
@@ -99,7 +101,16 @@ func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
 
 	switch ctx.Method() {
 	case fiber.MethodGet:
-		return ctx.SendString(neoviews.FragmentEditFeed(feed))
+		categories, err := core.GetCategoriesForUser(s.state, currentUserID)
+		if err != nil {
+			return fmt.Errorf("GET editFeedItem: %w", err)
+		}
+
+		return ctx.SendString(neoviews.FragmentEditFeed(&neoviews.FragmentEditFeedArgs{
+			Feed:              feed,
+			CurrentCategoryID: categoryID,
+			Categories:        categories,
+		}))
 	case fiber.MethodDelete:
 		if err := core.DeleteFeed(s.state, feed.ID); err != nil {
 			return err
@@ -107,15 +118,16 @@ func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
 	case fiber.MethodPut:
 		feed.Name = ctx.FormValue("name")
 		feed.URL = ctx.FormValue("url")
+		feed.CategoryID = ctx.FormValue("categoryID")
+
+		categoryID = feed.CategoryID
 
 		if err := core.UpdateFeed(s.state, feed); err != nil {
 			return err
 		}
-		//return ctx.SendString(views.RenderFeedRow(feed.ID, feed.Name, feed.URL))
 	}
 
-	// TODO: Set category
-	resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, "", true)
+	resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, categoryID, true)
 	if err != nil {
 		return err
 	}

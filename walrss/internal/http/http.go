@@ -91,7 +91,6 @@ func (s *Server) registerHandlers() {
 				ctx.Locals(userIDLocalKey, userID)
 			}
 		}
-
 		return ctx.Next()
 	})
 
@@ -105,6 +104,8 @@ func (s *Server) registerHandlers() {
 
 	s.app.Get(urls.AuthOIDCOutbound, s.authOIDCOutbound)
 	s.app.Get(urls.AuthOIDCCallback, s.authOIDCCallback)
+
+	s.app.Get(urls.FeedCategoryTab, s.getFeedsTab)
 
 	s.app.Put(urls.EditEnabledState, s.editEnabledState)
 	s.app.Put(urls.EditTimings, s.editTimings)

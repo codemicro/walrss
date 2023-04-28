@@ -2,7 +2,6 @@ package neoviews
 
 import (
 	"embed"
-	"fmt"
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/http/neoviews/internal/components"
 	"github.com/codemicro/walrss/walrss/internal/state"
@@ -69,8 +68,6 @@ func RenderFeedTabsAndTableForUser(st *state.State, userID string, currentCatego
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Println(feeds)
 
 	categories, err := core.GetCategoriesForUser(st, userID)
 	if err != nil {

@@ -232,7 +232,7 @@ func StreamRenderFeedRow(qw422016 *qt422016.Writer, id, name, url string) {
 	qw422016.N().S(`</th>
     <td id="feed-`)
 	qw422016.N().S(id)
-	qw422016.N().S(`-url" >`)
+	qw422016.N().S(`-url">`)
 	qw422016.E().S(url)
 	qw422016.N().S(`</td>
     <td>

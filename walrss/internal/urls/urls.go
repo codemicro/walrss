@@ -8,6 +8,9 @@ import (
 const (
 	Index = "/"
 
+	Feeds           = "/feeds"
+	FeedCategoryTab = Feeds + "/list-tab"
+
 	Auth             = "/auth"
 	AuthSignIn       = Auth + "/signin"
 	AuthRegister     = Auth + "/register"

@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/http/neoviews"
+	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -34,4 +35,18 @@ func (s *Server) mainPage(ctx *fiber.Ctx) error {
 		Feeds:          feeds,
 		Categories:     cats,
 	}))
+}
+
+func (s *Server) getFeedsTab(ctx *fiber.Ctx) error {
+	currentUserID := getCurrentUserID(ctx)
+	if currentUserID == "" {
+		return requestFragmentSignIn(ctx, urls.Index)
+	}
+	category := ctx.Query("category")
+
+	resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, category, false)
+	if err != nil {
+		return err
+	}
+	return ctx.SendString(resp)
 }

@@ -8,9 +8,10 @@ import (
 	"github.com/codemicro/walrss/walrss/internal/db"
 	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/lithammer/shortuuid/v4"
+	"strings"
 )
 
-func NewFeed(st *state.State, userID, name, url string) (*db.Feed, error) {
+func NewFeed(st *state.State, userID, name, url, categoryID string) (*db.Feed, error) {
 	if err := validateFeedName(name); err != nil {
 		return nil, err
 	}
@@ -19,11 +20,16 @@ func NewFeed(st *state.State, userID, name, url string) (*db.Feed, error) {
 		return nil, err
 	}
 
+	if err := validateCategoryID(st, categoryID); err != nil {
+		return nil, err
+	}
+
 	feed := &db.Feed{
-		ID:     shortuuid.New(),
-		URL:    url,
-		Name:   name,
-		UserID: userID,
+		ID:         shortuuid.New(),
+		URL:        url,
+		Name:       name,
+		UserID:     userID,
+		CategoryID: categoryID,
 	}
 
 	if _, err := st.Data.NewInsert().Model(feed).Exec(context.Background()); err != nil {
@@ -50,7 +56,7 @@ func GetFeeds(st *state.State, args *GetFeedsArgs) (res []*db.Feed, err error) {
 	if args.CategoryID != nil {
 		q = q.Relation("Category")
 		if *args.CategoryID == "" {
-			q = q.Where("Feed.category_id = NULL")
+			q = q.Where("Feed.category_id IS NULL")
 		} else {
 			q = q.Where("Feed.category_id = ?", *args.CategoryID)
 		}
@@ -75,11 +81,18 @@ func DeleteFeed(st *state.State, id string) error {
 }
 
 func UpdateFeed(st *state.State, feed *db.Feed) error {
+	feed.Name = strings.TrimSpace(feed.Name)
+	feed.URL = strings.TrimSpace(feed.URL)
+
 	if err := validateFeedName(feed.Name); err != nil {
 		return err
 	}
 
 	if err := validateURL(feed.URL); err != nil {
+		return err
+	}
+
+	if err := validateCategoryID(st, feed.CategoryID); err != nil {
 		return err
 	}
 
@@ -132,7 +145,7 @@ func ImportFeedsForUser(st *state.State, userID string, opmlXML []byte) error {
 		if _, found := existingURLs[feed.URL]; found {
 			continue
 		}
-		if _, err := NewFeed(st, userID, feed.Name, feed.URL); err != nil {
+		if _, err := NewFeed(st, userID, feed.Name, feed.URL, ""); err != nil {
 			return err
 		}
 	}
