@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/codemicro/walrss/walrss/internal/db"
 	"github.com/codemicro/walrss/walrss/internal/state"
 	"github.com/lithammer/shortuuid/v4"
@@ -47,4 +48,22 @@ func GetCategoriesForUser(st *state.State, userID string) (res []*db.Category, e
 		Order("Category.name ASC").
 		Scan(context.Background())
 	return
+}
+
+func DeleteCategory(st *state.State, categoryID string) error {
+	// move any feeds in this category to having no category
+	_, err := st.Data.NewUpdate().
+		Model((*db.Feed)(nil)).
+		Set("category_id = NULL").
+		Where("category_id = ?", categoryID).
+		Exec(context.Background())
+	if err != nil {
+		return fmt.Errorf("DeleteCategory: deregistering feeds: %w, id=%s", err, categoryID)
+	}
+
+	_, err = st.Data.NewDelete().
+		Model((*db.Category)(nil)).
+		Where("id = ?", categoryID).
+		Exec(context.Background())
+	return err
 }

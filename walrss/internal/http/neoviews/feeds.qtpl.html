@@ -59,7 +59,10 @@ type FeedsPageArgs struct {
                 >Add new feed</button>
                 {% if activeCategoryID != "" %}
                     <button class="button">Edit category</button>
-                    <button class="button">Delete category</button>
+                    <button class="button"
+                        hx-delete="{%s urls.Expand(urls.EditCategory, activeCategoryID) %}"
+                        hx-confirm="This will permanently delete this category. Are you sure?"
+                    >Delete category</button>
                 {% endif %}
             </div>
 
@@ -103,7 +106,6 @@ type FragmentNewFeedArgs struct {
 {% func FragmentNewFeed(args *FragmentNewFeedArgs) %}
     {%= components.BeginModal() %}
     <h2><i class="bi bi-pencil-square"></i> Add New Feed</h2>
-    <p class="warning-text">// TODO: category</p>
     <form>
         <div class="form-grid">
             <label for="new-feed-name">Feed name</label>

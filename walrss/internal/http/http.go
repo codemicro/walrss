@@ -114,6 +114,7 @@ func (s *Server) registerHandlers() {
 	s.app.Put(urls.EditFeedItem, s.editFeedItem)
 	s.app.Delete(urls.EditFeedItem, s.editFeedItem)
 	s.app.Get(urls.CancelEditFeedItem, s.cancelEditFeedItem)
+	s.app.Delete(urls.EditCategory, s.editCategory)
 
 	s.app.Get(urls.NewFeedItem, s.newFeedItem)
 	s.app.Post(urls.NewFeedItem, s.newFeedItem)

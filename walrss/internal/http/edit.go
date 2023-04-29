@@ -135,6 +135,40 @@ func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
 	return ctx.SendString(daz.H("div")() + resp)
 }
 
+func (s *Server) editCategory(ctx *fiber.Ctx) error {
+	currentUserID := getCurrentUserID(ctx)
+	if currentUserID == "" {
+		return requestFragmentSignIn(ctx, urls.Index)
+	}
+
+	categoryID := ctx.Params("id")
+
+	_, err := core.GetCategory(s.state, categoryID)
+	if err != nil {
+		return err
+	}
+
+	switch ctx.Method() {
+	case fiber.MethodGet:
+		// TODO
+	case fiber.MethodDelete:
+		if err := core.DeleteCategory(s.state, categoryID); err != nil {
+			return err
+		}
+
+		resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, "", true)
+		if err != nil {
+			return err
+		}
+		fragmentEmitSuccess(ctx)
+		return ctx.SendString(daz.H("div")() + resp)
+	case fiber.MethodPut:
+		// TODO
+	}
+
+	return ctx.SendString("TODO: page content")
+}
+
 func (s *Server) cancelEditFeedItem(ctx *fiber.Ctx) error {
 	currentUserID := getCurrentUserID(ctx)
 	if currentUserID == "" {

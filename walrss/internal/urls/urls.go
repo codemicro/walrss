@@ -22,6 +22,7 @@ const (
 	EditEnabledState   = Edit + "/enabled"
 	EditTimings        = Edit + "/timings"
 	EditFeedItem       = Edit + "/feed/:id"
+	EditCategory       = Edit + "/category/:id"
 	CancelEditFeedItem = Edit + "/feed/:id/cancel"
 
 	Export       = "/export"

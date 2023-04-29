@@ -140,7 +140,12 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, c
 	if activeCategoryID != "" {
 		qw422016.N().S(`
                     <button class="button">Edit category</button>
-                    <button class="button">Delete category</button>
+                    <button class="button"
+                        hx-delete="`)
+		qw422016.E().S(urls.Expand(urls.EditCategory, activeCategoryID))
+		qw422016.N().S(`"
+                        hx-confirm="This will permanently delete this category. Are you sure?"
+                    >Delete category</button>
                 `)
 	}
 	qw422016.N().S(`
@@ -226,7 +231,6 @@ func StreamFragmentNewFeed(qw422016 *qt422016.Writer, args *FragmentNewFeedArgs)
 	components.StreamBeginModal(qw422016)
 	qw422016.N().S(`
     <h2><i class="bi bi-pencil-square"></i> Add New Feed</h2>
-    <p class="warning-text">// TODO: category</p>
     <form>
         <div class="form-grid">
             <label for="new-feed-name">Feed name</label>
