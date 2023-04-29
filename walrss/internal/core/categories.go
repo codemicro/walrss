@@ -67,3 +67,15 @@ func DeleteCategory(st *state.State, categoryID string) error {
 		Exec(context.Background())
 	return err
 }
+
+func UpdateCategory(st *state.State, category *db.Category) error {
+	if err := validateCategoryName(category.Name); err != nil {
+		return err
+	}
+
+	_, err := st.Data.NewUpdate().Model(category).WherePK().Exec(context.Background())
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	return err
+}

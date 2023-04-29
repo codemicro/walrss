@@ -1,14 +1,11 @@
 package http
 
 import (
-	"fmt"
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/db"
-	"github.com/codemicro/walrss/walrss/internal/http/neoviews"
 	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
-	"github.com/stevelacy/daz"
 	"strconv"
 	"strings"
 )
@@ -83,104 +80,4 @@ func (s *Server) editTimings(ctx *fiber.Ctx) error {
 		SelectedDay:   user.ScheduleDay,
 		SelectedTime:  user.ScheduleHour,
 	}).RenderScheduleCard())
-}
-
-func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
-	currentUserID := getCurrentUserID(ctx)
-	if currentUserID == "" {
-		return requestFragmentSignIn(ctx, urls.Index)
-	}
-
-	feedID := ctx.Params("id")
-	categoryID := ctx.Query("category")
-
-	feed, err := core.GetFeed(s.state, feedID)
-	if err != nil {
-		return err
-	}
-
-	switch ctx.Method() {
-	case fiber.MethodGet:
-		categories, err := core.GetCategoriesForUser(s.state, currentUserID)
-		if err != nil {
-			return fmt.Errorf("GET editFeedItem: %w", err)
-		}
-
-		return ctx.SendString(neoviews.FragmentEditFeed(&neoviews.FragmentEditFeedArgs{
-			Feed:              feed,
-			CurrentCategoryID: categoryID,
-			Categories:        categories,
-		}))
-	case fiber.MethodDelete:
-		if err := core.DeleteFeed(s.state, feed.ID); err != nil {
-			return err
-		}
-	case fiber.MethodPut:
-		feed.Name = ctx.FormValue("name")
-		feed.URL = ctx.FormValue("url")
-		feed.CategoryID = ctx.FormValue("categoryID")
-
-		categoryID = feed.CategoryID
-
-		if err := core.UpdateFeed(s.state, feed); err != nil {
-			return err
-		}
-	}
-
-	resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, categoryID, true)
-	if err != nil {
-		return err
-	}
-	fragmentEmitSuccess(ctx)
-	return ctx.SendString(daz.H("div")() + resp)
-}
-
-func (s *Server) editCategory(ctx *fiber.Ctx) error {
-	currentUserID := getCurrentUserID(ctx)
-	if currentUserID == "" {
-		return requestFragmentSignIn(ctx, urls.Index)
-	}
-
-	categoryID := ctx.Params("id")
-
-	_, err := core.GetCategory(s.state, categoryID)
-	if err != nil {
-		return err
-	}
-
-	switch ctx.Method() {
-	case fiber.MethodGet:
-		// TODO
-	case fiber.MethodDelete:
-		if err := core.DeleteCategory(s.state, categoryID); err != nil {
-			return err
-		}
-
-		resp, err := neoviews.RenderFeedTabsAndTableForUser(s.state, currentUserID, "", true)
-		if err != nil {
-			return err
-		}
-		fragmentEmitSuccess(ctx)
-		return ctx.SendString(daz.H("div")() + resp)
-	case fiber.MethodPut:
-		// TODO
-	}
-
-	return ctx.SendString("TODO: page content")
-}
-
-func (s *Server) cancelEditFeedItem(ctx *fiber.Ctx) error {
-	currentUserID := getCurrentUserID(ctx)
-	if currentUserID == "" {
-		return requestFragmentSignIn(ctx, urls.Index)
-	}
-
-	feedID := ctx.Params("id")
-
-	feed, err := core.GetFeed(s.state, feedID)
-	if err != nil {
-		return err
-	}
-
-	return ctx.SendString(views.RenderFeedRow(feed.ID, feed.Name, feed.URL))
 }

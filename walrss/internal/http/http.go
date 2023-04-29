@@ -94,7 +94,13 @@ func (s *Server) registerHandlers() {
 		return ctx.Next()
 	})
 
-	s.app.Get(urls.Index, s.mainPage)
+	s.app.Get(urls.Index, func(ctx *fiber.Ctx) error {
+		currentUserID := getCurrentUserID(ctx)
+		if currentUserID == "" {
+			return requestStandardSignIn(ctx)
+		}
+		return ctx.Redirect(urls.Feeds)
+	})
 
 	s.app.Get(urls.AuthRegister, s.authRegister)
 	s.app.Post(urls.AuthRegister, s.authRegister)
@@ -105,21 +111,25 @@ func (s *Server) registerHandlers() {
 	s.app.Get(urls.AuthOIDCOutbound, s.authOIDCOutbound)
 	s.app.Get(urls.AuthOIDCCallback, s.authOIDCCallback)
 
-	s.app.Get(urls.FeedCategoryTab, s.getFeedsTab)
+	s.app.Get(urls.Feeds, s.feedsPage)
+
+	s.app.Get(urls.FeedsCategoryTab, s.getFeedsTab)
 
 	s.app.Put(urls.EditEnabledState, s.editEnabledState)
 	s.app.Put(urls.EditTimings, s.editTimings)
 
-	s.app.Get(urls.EditFeedItem, s.editFeedItem)
-	s.app.Put(urls.EditFeedItem, s.editFeedItem)
-	s.app.Delete(urls.EditFeedItem, s.editFeedItem)
+	s.app.Get(urls.FeedsFeed, s.editFeedItem)
+	s.app.Put(urls.FeedsFeed, s.editFeedItem)
+	s.app.Delete(urls.FeedsFeed, s.editFeedItem)
 	s.app.Get(urls.CancelEditFeedItem, s.cancelEditFeedItem)
-	s.app.Delete(urls.EditCategory, s.editCategory)
+	s.app.Get(urls.FeedsCategory, s.editCategory)
+	s.app.Put(urls.FeedsCategory, s.editCategory)
+	s.app.Delete(urls.FeedsCategory, s.editCategory)
 
-	s.app.Get(urls.NewFeedItem, s.newFeedItem)
-	s.app.Post(urls.NewFeedItem, s.newFeedItem)
-	s.app.Get(urls.NewCategory, s.newCategory)
-	s.app.Post(urls.NewCategory, s.newCategory)
+	s.app.Get(urls.FeedsNewFeed, s.newFeedItem)
+	s.app.Post(urls.FeedsNewFeed, s.newFeedItem)
+	s.app.Get(urls.FeedsNewCategory, s.newCategory)
+	s.app.Post(urls.FeedsNewCategory, s.newCategory)
 
 	s.app.Post(urls.SendTestEmail, s.sendTestEmail)
 	s.app.Get(urls.TestEmailStatus, s.testEmailStatus)
@@ -128,6 +138,8 @@ func (s *Server) registerHandlers() {
 	s.app.Post(urls.ImportFromOPML, s.importFromOPML)
 
 	s.app.Get(urls.CancelModal, func(*fiber.Ctx) error { return nil })
+
+	s.app.Get(urls.Settings, s.settingsPage)
 
 	s.app.Use(urls.Statics, neoviews.GetStaticHandler())
 	//s.app.Use(urls.Statics, static.NewHandler())

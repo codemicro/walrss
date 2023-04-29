@@ -8,8 +8,14 @@ import (
 const (
 	Index = "/"
 
-	Feeds           = "/feeds"
-	FeedCategoryTab = Feeds + "/list-tab"
+	Feeds = "/feeds"
+
+	FeedsFragments   = Feeds + "/-"
+	FeedsCategoryTab = FeedsFragments + "/list-tab"
+	FeedsNewFeed     = FeedsFragments + "/feed"
+	FeedsNewCategory = FeedsFragments + "/category"
+	FeedsFeed        = FeedsFragments + "/feed/:id"
+	FeedsCategory    = FeedsFragments + "/category/:id"
 
 	Auth             = "/auth"
 	AuthSignIn       = Auth + "/signin"
@@ -18,11 +24,11 @@ const (
 	AuthOIDCOutbound = AuthOIDC + "/outbound"
 	AuthOIDCCallback = AuthOIDC + "/callback"
 
+	Settings = "/settings"
+
 	Edit               = "/edit"
 	EditEnabledState   = Edit + "/enabled"
 	EditTimings        = Edit + "/timings"
-	EditFeedItem       = Edit + "/feed/:id"
-	EditCategory       = Edit + "/category/:id"
 	CancelEditFeedItem = Edit + "/feed/:id/cancel"
 
 	Export       = "/export"
@@ -30,10 +36,6 @@ const (
 
 	Import         = "/import"
 	ImportFromOPML = Import + "/opml"
-
-	New         = "/new"
-	NewFeedItem = New + "/feed"
-	NewCategory = New + "/category"
 
 	SendTestEmail   = "/send/test"
 	TestEmailStatus = SendTestEmail + "/status"

@@ -102,7 +102,7 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, c
 		qw422016.N().S(`active`)
 	}
 	qw422016.N().S(`" hx-get="`)
-	qw422016.E().S(urls.FeedCategoryTab)
+	qw422016.E().S(urls.FeedsCategoryTab)
 	qw422016.N().S(`" hx-target="#feeds" hx-swap="outerHTML">(no category)</div>
             `)
 	for _, category := range categories {
@@ -112,7 +112,7 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, c
 			qw422016.N().S(`active`)
 		}
 		qw422016.N().S(`" hx-get="`)
-		qw422016.E().S(urls.FeedCategoryTab)
+		qw422016.E().S(urls.FeedsCategoryTab)
 		qw422016.N().S(`?category=`)
 		qw422016.E().S(category.ID)
 		qw422016.N().S(`" hx-target="#feeds" hx-swap="outerHTML">`)
@@ -122,7 +122,7 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, c
 	}
 	qw422016.N().S(`
             <div class="tab" hx-get="`)
-	qw422016.E().S(urls.NewCategory)
+	qw422016.E().S(urls.FeedsNewCategory)
 	qw422016.N().S(`" hx-target="#modal-target">+</div>
             <div class="filler-line"></div>
         </div>
@@ -130,7 +130,7 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, c
             <div class="flex-horizontal">
                 <button class="button green"
                         hx-get="`)
-	qw422016.E().S(urls.NewFeedItem)
+	qw422016.E().S(urls.FeedsNewFeed)
 	qw422016.N().S(`?category=`)
 	qw422016.E().S(activeCategoryID)
 	qw422016.N().S(`"
@@ -139,10 +139,15 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, c
                 `)
 	if activeCategoryID != "" {
 		qw422016.N().S(`
-                    <button class="button">Edit category</button>
+                    <button class="button"
+                        hx-get="`)
+		qw422016.E().S(urls.Expand(urls.FeedsCategory, activeCategoryID))
+		qw422016.N().S(`"
+                        hx-target="#modal-target"
+                    >Edit category</button>
                     <button class="button"
                         hx-delete="`)
-		qw422016.E().S(urls.Expand(urls.EditCategory, activeCategoryID))
+		qw422016.E().S(urls.Expand(urls.FeedsCategory, activeCategoryID))
 		qw422016.N().S(`"
                         hx-confirm="This will permanently delete this category. Are you sure?"
                     >Delete category</button>
@@ -176,7 +181,7 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, c
                         <div class="flex-horizontal float-right">
                             <button class="button inline"
                                 hx-get="`)
-		qw422016.E().S(urls.Expand(urls.EditFeedItem, feed.ID))
+		qw422016.E().S(urls.Expand(urls.FeedsFeed, feed.ID))
 		if activeCategoryID != "" {
 			qw422016.N().S(`?category=`)
 			qw422016.E().S(activeCategoryID)
@@ -186,7 +191,7 @@ func StreamRenderFeedTabsAndTable(qw422016 *qt422016.Writer, feeds []*db.Feed, c
                             >Edit</button>
                             <button class="button inline"
                                 hx-delete="`)
-		qw422016.E().S(urls.Expand(urls.EditFeedItem, feed.ID))
+		qw422016.E().S(urls.Expand(urls.FeedsFeed, feed.ID))
 		if activeCategoryID != "" {
 			qw422016.N().S(`?category=`)
 			qw422016.E().S(activeCategoryID)
@@ -265,7 +270,7 @@ func StreamFragmentNewFeed(qw422016 *qt422016.Writer, args *FragmentNewFeedArgs)
         </div>
         <div class="flex-horizontal pt">
             <button class="button green" hx-post="`)
-	qw422016.E().S(urls.NewFeedItem)
+	qw422016.E().S(urls.FeedsNewFeed)
 	qw422016.N().S(`" hx-target="#modal-target">Submit</button>
             <button class="button red" hx-get="`)
 	qw422016.E().S(urls.CancelModal)
@@ -342,7 +347,7 @@ func StreamFragmentEditFeed(qw422016 *qt422016.Writer, args *FragmentEditFeedArg
         </div>
         <div class="flex-horizontal pt">
             <button class="button green" hx-put="`)
-	qw422016.E().S(urls.Expand(urls.EditFeedItem, args.Feed.ID))
+	qw422016.E().S(urls.Expand(urls.FeedsFeed, args.Feed.ID))
 	if args.CurrentCategoryID != "" {
 		qw422016.N().S(`?category=`)
 		qw422016.E().S(args.CurrentCategoryID)
@@ -368,6 +373,92 @@ func WriteFragmentEditFeed(qq422016 qtio422016.Writer, args *FragmentEditFeedArg
 func FragmentEditFeed(args *FragmentEditFeedArgs) string {
 	qb422016 := qt422016.AcquireByteBuffer()
 	WriteFragmentEditFeed(qb422016, args)
+	qs422016 := string(qb422016.B)
+	qt422016.ReleaseByteBuffer(qb422016)
+	return qs422016
+}
+
+func StreamFragmentNewCategory(qw422016 *qt422016.Writer) {
+	qw422016.N().S(`
+`)
+	components.StreamBeginModal(qw422016)
+	qw422016.N().S(`
+<h2><i class="bi bi-pencil-square"></i> Create New Category</h2>
+<form>
+    <div class="form-grid">
+        <label for="new-category-name">Category name</label>
+        <input type="text" id="new-category-name" name="name" placeholder="Name">
+    </div>
+    <div class="flex-horizontal pt">
+        <button class="button green" hx-post="`)
+	qw422016.E().S(urls.FeedsNewCategory)
+	qw422016.N().S(`" hx-target="#modal-target">Submit</button>
+        <button class="button red" hx-get="`)
+	qw422016.E().S(urls.CancelModal)
+	qw422016.N().S(`" hx-target="#modal-target">Cancel</button>
+    </div>
+</form>
+`)
+	components.StreamEndModal(qw422016)
+	qw422016.N().S(`
+`)
+}
+
+func WriteFragmentNewCategory(qq422016 qtio422016.Writer) {
+	qw422016 := qt422016.AcquireWriter(qq422016)
+	StreamFragmentNewCategory(qw422016)
+	qt422016.ReleaseWriter(qw422016)
+}
+
+func FragmentNewCategory() string {
+	qb422016 := qt422016.AcquireByteBuffer()
+	WriteFragmentNewCategory(qb422016)
+	qs422016 := string(qb422016.B)
+	qt422016.ReleaseByteBuffer(qb422016)
+	return qs422016
+}
+
+type FragmentEditCategoryArgs struct {
+	Category *db.Category
+}
+
+func StreamFragmentEditCategory(qw422016 *qt422016.Writer, args *FragmentEditCategoryArgs) {
+	qw422016.N().S(`
+`)
+	components.StreamBeginModal(qw422016)
+	qw422016.N().S(`
+<h2><i class="bi bi-pencil-square"></i> Edit Category</h2>
+<form>
+    <div class="form-grid">
+        <label for="edit-category-name">Category name</label>
+        <input type="text" id="edit-category-name" name="name" placeholder="Name" value="`)
+	qw422016.E().S(args.Category.Name)
+	qw422016.N().S(`">
+    </div>
+    <div class="flex-horizontal pt">
+        <button class="button green" hx-put="`)
+	qw422016.E().S(urls.Expand(urls.FeedsCategory, args.Category.ID))
+	qw422016.N().S(`" hx-target="#modal-target">Submit</button>
+        <button class="button red" hx-get="`)
+	qw422016.E().S(urls.CancelModal)
+	qw422016.N().S(`" hx-target="#modal-target">Cancel</button>
+    </div>
+</form>
+`)
+	components.StreamEndModal(qw422016)
+	qw422016.N().S(`
+`)
+}
+
+func WriteFragmentEditCategory(qq422016 qtio422016.Writer, args *FragmentEditCategoryArgs) {
+	qw422016 := qt422016.AcquireWriter(qq422016)
+	StreamFragmentEditCategory(qw422016, args)
+	qt422016.ReleaseWriter(qw422016)
+}
+
+func FragmentEditCategory(args *FragmentEditCategoryArgs) string {
+	qb422016 := qt422016.AcquireByteBuffer()
+	WriteFragmentEditCategory(qb422016, args)
 	qs422016 := string(qb422016.B)
 	qt422016.ReleaseByteBuffer(qb422016)
 	return qs422016

@@ -120,7 +120,7 @@ func (p *MainPage) StreamBody(qw422016 *qt422016.Writer) {
                                         type="button"
                                         class="btn btn-primary"
                                         hx-get="`)
-	qw422016.N().S(urls.NewFeedItem)
+	qw422016.N().S(urls.FeedsNewFeed)
 	qw422016.N().S(`"
                                         hx-target="#feedListing"
                                         hx-swap="beforeend show:bottom"
@@ -238,7 +238,7 @@ func StreamRenderFeedRow(qw422016 *qt422016.Writer, id, name, url string) {
     <td>
         <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
             <button type="button" class="btn btn-outline-primary" hx-get="`)
-	qw422016.N().S(urls.Expand(urls.EditFeedItem, id))
+	qw422016.N().S(urls.Expand(urls.FeedsFeed, id))
 	qw422016.N().S(`">
                 <i class="bi bi-pencil-square"></i>
             </button>
@@ -246,7 +246,7 @@ func StreamRenderFeedRow(qw422016 *qt422016.Writer, id, name, url string) {
                     type="button"
                     class="btn btn-outline-danger"
                     hx-delete="`)
-	qw422016.N().S(urls.Expand(urls.EditFeedItem, id))
+	qw422016.N().S(urls.Expand(urls.FeedsFeed, id))
 	qw422016.N().S(`"
                     hx-confirm="This will permanently delete this item. Are you sure?"
             >
@@ -305,7 +305,7 @@ func StreamRenderFeedEditRow(qw422016 *qt422016.Writer, id, name, url string) {
                     type="button"
                     class="btn btn-outline-success"
                     hx-put="`)
-	qw422016.N().S(urls.Expand(urls.EditFeedItem, id))
+	qw422016.N().S(urls.Expand(urls.FeedsFeed, id))
 	qw422016.N().S(`"
                     hx-include="#feed-`)
 	qw422016.N().S(id)
@@ -371,7 +371,7 @@ func StreamRenderNewFeedItemRow(qw422016 *qt422016.Writer) {
                     type="button"
                     class="btn btn-outline-success"
                     hx-post="`)
-	qw422016.N().S(urls.NewFeedItem)
+	qw422016.N().S(urls.FeedsNewFeed)
 	qw422016.N().S(`"
                     hx-include="#input-`)
 	qw422016.N().S(id)
