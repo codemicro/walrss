@@ -321,20 +321,24 @@ button.button {
   font-size: 1rem;
   border-radius: 0.25ch;
 
-  &:hover {
+  &[disabled] {
+    cursor: not-allowed;
+  }
+
+  &:hover:not([disabled]) {
     background-color: $light-purple;
   }
 
   &.red {
     background-color: $red;
-    &:hover {
+    &:hover:not([disabled]) {
       background-color: $light-red;
     }
   }
 
   &.green {
     background-color: $green;
-    &:hover {
+    &:hover:not([disabled]) {
       background-color: $light-green;
     }
   }

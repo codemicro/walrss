@@ -6,6 +6,8 @@ import (
 )
 
 const (
+	CancelEditFeedItem = ""
+
 	Index = "/"
 
 	Feeds = "/feeds"
@@ -26,10 +28,9 @@ const (
 
 	Settings = "/settings"
 
-	Edit               = "/edit"
-	EditEnabledState   = Edit + "/enabled"
-	EditTimings        = Edit + "/timings"
-	CancelEditFeedItem = Edit + "/feed/:id/cancel"
+	SettingsFragments        = Settings + "/-"
+	SettingsEditEnabledState = SettingsFragments + "/digestsactive"
+	SettingsEditTimings      = SettingsFragments + "/timings"
 
 	Export       = "/export"
 	ExportAsOPML = Export + "/opml"

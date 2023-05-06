@@ -62,6 +62,14 @@ func coreRegisterUser(st *state.State, u *db.User) error {
 		}
 		return err
 	}
+	if _, err := st.Data.NewInsert().Model(&db.Settings{
+		UserID:        u.ID,
+		DigestsActive: true,
+		ScheduleDay:   db.SendDaily,
+		ScheduleHour:  9,
+	}).Exec(context.Background()); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -87,7 +95,7 @@ func AreUserCredentialsCorrect(st *state.State, email, password string) (bool, e
 
 func GetUserByID(st *state.State, userID string) (res *db.User, err error) {
 	res = new(db.User)
-	err = st.Data.NewSelect().Model(res).Where("id = ?", userID).Scan(context.Background())
+	err = st.Data.NewSelect().Model(res).Relation("Settings").Where(`"user"."id" = ?`, userID).Scan(context.Background())
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -96,7 +104,7 @@ func GetUserByID(st *state.State, userID string) (res *db.User, err error) {
 
 func GetUserByEmail(st *state.State, email string) (res *db.User, err error) {
 	res = new(db.User)
-	err = st.Data.NewSelect().Model(res).Where("email = ?", email).Scan(context.Background())
+	err = st.Data.NewSelect().Model(res).Relation("Settings").Where(`"user"."email" = ?`, email).Scan(context.Background())
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -114,6 +122,8 @@ func UpdateUser(st *state.State, user *db.User) error {
 func GetUsersBySchedule(st *state.State, day db.SendDay, hour int) (res []*db.User, err error) {
 	err = st.Data.NewSelect().
 		Model(&res).
+		Relation("Settings").
+		Join("JOIN settings ON settings.user_id = user.id").
 		Where(
 			"active = ? and (schedule_day = ? or schedule_day = ?) and schedule_hour = ?",
 			true,

@@ -115,13 +115,12 @@ func (s *Server) registerHandlers() {
 
 	s.app.Get(urls.FeedsCategoryTab, s.getFeedsTab)
 
-	s.app.Put(urls.EditEnabledState, s.editEnabledState)
-	s.app.Put(urls.EditTimings, s.editTimings)
+	s.app.Put(urls.SettingsEditEnabledState, s.editEnabledState)
+	s.app.Put(urls.SettingsEditTimings, s.editTimings)
 
 	s.app.Get(urls.FeedsFeed, s.editFeedItem)
 	s.app.Put(urls.FeedsFeed, s.editFeedItem)
 	s.app.Delete(urls.FeedsFeed, s.editFeedItem)
-	s.app.Get(urls.CancelEditFeedItem, s.cancelEditFeedItem)
 	s.app.Get(urls.FeedsCategory, s.editCategory)
 	s.app.Put(urls.FeedsCategory, s.editCategory)
 	s.app.Delete(urls.FeedsCategory, s.editCategory)

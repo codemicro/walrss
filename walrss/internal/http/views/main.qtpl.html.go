@@ -433,7 +433,7 @@ func (p *MainPage) StreamRenderScheduleCard(qw422016 *qt422016.Writer) {
 	}
 	qw422016.N().S(`
                         hx-put="`)
-	qw422016.N().S(urls.EditEnabledState)
+	qw422016.N().S(urls.SettingsEditEnabledState)
 	qw422016.N().S(`"
                         hx-indicator="#enableCheckboxIndicator"
                 >
@@ -450,7 +450,7 @@ func (p *MainPage) StreamRenderScheduleCard(qw422016 *qt422016.Writer) {
         <form
                 class="row row-cols-lg-auto g-3 align-items-center"
                 hx-put="`)
-	qw422016.E().S(urls.EditTimings)
+	qw422016.E().S(urls.SettingsEditTimings)
 	qw422016.N().S(`"
                 hx-indicator="#submitScheduleIndicator"
         >

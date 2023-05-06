@@ -5,6 +5,10 @@ package neoviews
 
 import "github.com/codemicro/walrss/walrss/internal/http/neoviews/internal/components"
 
+import "github.com/codemicro/walrss/walrss/internal/db"
+
+import "github.com/codemicro/walrss/walrss/internal/urls"
+
 import (
 	qtio422016 "io"
 
@@ -16,7 +20,7 @@ var (
 	_ = qt422016.AcquireByteBuffer
 )
 
-func StreamSettingsPage(qw422016 *qt422016.Writer) {
+func StreamSettingsPage(qw422016 *qt422016.Writer, user *db.User) {
 	qw422016.N().S(`
 <!DOCTYPE html>
 <html lang="en">
@@ -35,27 +39,10 @@ func StreamSettingsPage(qw422016 *qt422016.Writer) {
 <div class="container">
     <h1 class="title"><i class="bi bi-gear-fill"></i> Settings</h1>
 
-    <div class="card">
-        <h2>Delivery Controls</h2>
-
-        <form action="">
-            <input type="checkbox" name="" id="f"><label for="f">Enable digest delivery</label>
-        </form>
-
-        <div class="pt"></div>
-
-        <form action="">
-            Deliver my digests
-            <select name="day" id="day-selector">
-                <option value="cheeze">Cheese</option>
-            </select>
-            at
-            <select name="time" id="time-selector">
-                <option value="5am">5am</option>
-            </select>
-            UTC
-            <button class="button inline">Save</button>
-        </form>
+    <div class="card" hx-target="this">
+        `)
+	StreamFragmentDeliverySettings(qw422016, user)
+	qw422016.N().S(`
     </div>
 
     <div class="card">
@@ -68,21 +55,133 @@ func StreamSettingsPage(qw422016 *qt422016.Writer) {
 `)
 	components.StreamEndMain(qw422016)
 	qw422016.N().S(`
+`)
+	components.StreamToast(qw422016)
+	qw422016.N().S(`
 
 </body>
 </html>
 `)
 }
 
-func WriteSettingsPage(qq422016 qtio422016.Writer) {
+func WriteSettingsPage(qq422016 qtio422016.Writer, user *db.User) {
 	qw422016 := qt422016.AcquireWriter(qq422016)
-	StreamSettingsPage(qw422016)
+	StreamSettingsPage(qw422016, user)
 	qt422016.ReleaseWriter(qw422016)
 }
 
-func SettingsPage() string {
+func SettingsPage(user *db.User) string {
 	qb422016 := qt422016.AcquireByteBuffer()
-	WriteSettingsPage(qb422016)
+	WriteSettingsPage(qb422016, user)
+	qs422016 := string(qb422016.B)
+	qt422016.ReleaseByteBuffer(qb422016)
+	return qs422016
+}
+
+func StreamFragmentDeliverySettings(qw422016 *qt422016.Writer, user *db.User) {
+	qw422016.N().S(`
+    <h2>Delivery Controls</h2>
+
+    <input type="checkbox" name="enable" id="enable-digests-checkbox"
+           `)
+	if user.Settings.DigestsActive {
+		qw422016.N().S(`checked`)
+	}
+	qw422016.N().S(`
+           hx-put="`)
+	qw422016.N().S(urls.SettingsEditEnabledState)
+	qw422016.N().S(`"
+    ><label for="enable-digests-checkbox">Enable digest delivery</label>
+
+    <div class="pt"></div>
+
+    <form hx-put="`)
+	qw422016.E().S(urls.SettingsEditTimings)
+	qw422016.N().S(`">
+        Deliver my digests
+        <select
+                id="day-selector"
+                name="day"
+                `)
+	if !user.Settings.DigestsActive {
+		qw422016.N().S(`disabled`)
+	}
+	qw422016.N().S(`
+        >
+            `)
+	for i := db.SendDaily; i <= db.SendOnSunday; i += 1 {
+		qw422016.N().S(`
+            <option
+                    value="`)
+		qw422016.N().D(int(i))
+		qw422016.N().S(`"
+                    `)
+		if user.Settings.ScheduleDay == i {
+			qw422016.N().S(`selected`)
+		}
+		qw422016.N().S(`
+            >
+                `)
+		if i != db.SendDaily {
+			qw422016.N().S(`on `)
+		}
+		qw422016.E().S(i.String())
+		qw422016.N().S(`
+            </option>
+            `)
+	}
+	qw422016.N().S(`
+        </select>
+        at
+        <select
+                id="time-selector"
+                name="time"
+                `)
+	if !user.Settings.DigestsActive {
+		qw422016.N().S(`disabled`)
+	}
+	qw422016.N().S(`
+        >
+            `)
+	for i := 0; i <= 23; i += 1 {
+		qw422016.N().S(`
+            <option
+                    value="`)
+		qw422016.N().D(i)
+		qw422016.N().S(`"
+                    `)
+		if user.Settings.ScheduleHour == i {
+			qw422016.N().S(`selected`)
+		}
+		qw422016.N().S(`
+            >
+                `)
+		qw422016.N().D(i)
+		qw422016.N().S(`:00
+            </option>
+            `)
+	}
+	qw422016.N().S(`
+        </select>
+        UTC
+        <button type="submit" class="button inline" `)
+	if !user.Settings.DigestsActive {
+		qw422016.N().S(`disabled`)
+	}
+	qw422016.N().S(`>Save</button>
+    </form>
+`)
+}
+
+func WriteFragmentDeliverySettings(qq422016 qtio422016.Writer, user *db.User) {
+	qw422016 := qt422016.AcquireWriter(qq422016)
+	StreamFragmentDeliverySettings(qw422016, user)
+	qt422016.ReleaseWriter(qw422016)
+}
+
+func FragmentDeliverySettings(user *db.User) string {
+	qb422016 := qt422016.AcquireByteBuffer()
+	WriteFragmentDeliverySettings(qb422016, user)
 	qs422016 := string(qb422016.B)
 	qt422016.ReleaseByteBuffer(qb422016)
 	return qs422016

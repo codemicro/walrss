@@ -92,7 +92,7 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 	}
 
 	var interval time.Duration
-	if user.ScheduleDay == db.SendDaily || user.ScheduleDay == db.SendDayNever {
+	if user.Settings.ScheduleDay == db.SendDaily || user.Settings.ScheduleDay == db.SendDayNever {
 		interval = time.Hour * 24
 	} else {
 		interval = time.Hour * 24 * 7

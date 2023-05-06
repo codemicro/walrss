@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/http/neoviews"
-	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/urls"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stevelacy/daz"
@@ -34,7 +33,7 @@ func (s *Server) feedsPage(ctx *fiber.Ctx) error {
 
 	ctx.Type("html")
 	return ctx.SendString(neoviews.FeedsPage(&neoviews.FeedsPageArgs{
-		DigestsEnabled: user.Active,
+		DigestsEnabled: user.Settings.DigestsActive,
 		Feeds:          feeds,
 		Categories:     cats,
 	}))
@@ -141,22 +140,6 @@ func (s *Server) editCategory(ctx *fiber.Ctx) error {
 	}
 	fragmentEmitSuccess(ctx)
 	return ctx.SendString(daz.H("div")() + resp)
-}
-
-func (s *Server) cancelEditFeedItem(ctx *fiber.Ctx) error {
-	currentUserID := getCurrentUserID(ctx)
-	if currentUserID == "" {
-		return requestFragmentSignIn(ctx, urls.Index)
-	}
-
-	feedID := ctx.Params("id")
-
-	feed, err := core.GetFeed(s.state, feedID)
-	if err != nil {
-		return err
-	}
-
-	return ctx.SendString(views.RenderFeedRow(feed.ID, feed.Name, feed.URL))
 }
 
 func (s *Server) newFeedItem(ctx *fiber.Ctx) error {

@@ -260,19 +260,22 @@ button.button {
   font-size: 1rem;
   border-radius: 0.25ch;
 }
-button.button:hover {
+button.button[disabled] {
+  cursor: not-allowed;
+}
+button.button:hover:not([disabled]) {
   background-color: #9E8DCE;
 }
 button.button.red {
   background-color: #DF2935;
 }
-button.button.red:hover {
+button.button.red:hover:not([disabled]) {
   background-color: #EF3945;
 }
 button.button.green {
   background-color: #5FAD56;
 }
-button.button.green:hover {
+button.button.green:hover:not([disabled]) {
   background-color: #6FBD66;
 }
 button.button.inline {

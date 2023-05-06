@@ -1,6 +1,8 @@
 {% import "github.com/codemicro/walrss/walrss/internal/http/neoviews/internal/components" %}
+{% import "github.com/codemicro/walrss/walrss/internal/db" %}
+{% import "github.com/codemicro/walrss/walrss/internal/urls" %}
 
-{% func SettingsPage() %}
+{% func SettingsPage(user *db.User) %}
 <!DOCTYPE html>
 <html lang="en">
 {%= components.Head("Settings") %}
@@ -12,27 +14,8 @@
 <div class="container">
     <h1 class="title"><i class="bi bi-gear-fill"></i> Settings</h1>
 
-    <div class="card">
-        <h2>Delivery Controls</h2>
-
-        <form action="">
-            <input type="checkbox" name="" id="f"><label for="f">Enable digest delivery</label>
-        </form>
-
-        <div class="pt"></div>
-
-        <form action="">
-            Deliver my digests
-            <select name="day" id="day-selector">
-                <option value="cheeze">Cheese</option>
-            </select>
-            at
-            <select name="time" id="time-selector">
-                <option value="5am">5am</option>
-            </select>
-            UTC
-            <button class="button inline">Save</button>
-        </form>
+    <div class="card" hx-target="this">
+        {%= FragmentDeliverySettings(user) %}
     </div>
 
     <div class="card">
@@ -43,7 +26,54 @@
 </div>
 
 {%= components.EndMain() %}
+{%= components.Toast() %}
 
 </body>
 </html>
+{% endfunc %}
+
+{% func FragmentDeliverySettings(user *db.User) %}
+    <h2>Delivery Controls</h2>
+
+    <input type="checkbox" name="enable" id="enable-digests-checkbox"
+           {% if user.Settings.DigestsActive %}checked{% endif %}
+           hx-put="{%s= urls.SettingsEditEnabledState %}"
+    ><label for="enable-digests-checkbox">Enable digest delivery</label>
+
+    <div class="pt"></div>
+
+    <form hx-put="{%s urls.SettingsEditTimings %}">
+        Deliver my digests
+        <select
+                id="day-selector"
+                name="day"
+                {% if !user.Settings.DigestsActive %}disabled{% endif %}
+        >
+            {% for i := db.SendDaily; i <= db.SendOnSunday; i += 1 %}
+            <option
+                    value="{%d int(i) %}"
+                    {% if user.Settings.ScheduleDay == i %}selected{% endif %}
+            >
+                {% if i != db.SendDaily %}on {% endif %}{%s i.String() %}
+            </option>
+            {% endfor %}
+        </select>
+        at
+        <select
+                id="time-selector"
+                name="time"
+                {% if !user.Settings.DigestsActive %}disabled{% endif %}
+        >
+            {% for i := 0; i <= 23; i += 1 %}
+            <option
+                    value="{%d i %}"
+                    {% if user.Settings.ScheduleHour == i %}selected{% endif %}
+            >
+                {%d i %}:00
+            </option>
+            {% endfor %}
+        </select>
+        UTC
+        <button type="submit" class="button inline" {% if !user.Settings.DigestsActive %}disabled{% endif %}>Save</button>
+    </form>
 {% endfunc %}

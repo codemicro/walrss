@@ -19,7 +19,9 @@ func New(filename string) (*bun.DB, error) {
 
 	db.SetMaxOpenConns(1) // https://github.com/mattn/go-sqlite3/issues/274#issuecomment-191597862
 
-	return bun.NewDB(db, sqlitedialect.New()), nil
+	b := bun.NewDB(db, sqlitedialect.New())
+
+	return b, nil
 }
 
 type User struct {
@@ -30,9 +32,18 @@ type User struct {
 	Password []byte `bun:"password"`
 	Salt     []byte `bun:"salt"`
 
-	Active       bool    `bun:"active,notnull"`
-	ScheduleDay  SendDay `bun:"schedule_day"`
-	ScheduleHour int     `bun:"schedule_hour"`
+	Settings *Settings `bun:"rel:has-one,join:id=user_id"`
+}
+
+type Settings struct {
+	// Default settings are defined at users.go:65
+	bun.BaseModel
+
+	UserID string `bun:",pk"`
+
+	DigestsActive bool    `bun:"active"`
+	ScheduleDay   SendDay `bun:"schedule_day"`
+	ScheduleHour  int     `bun:"schedule_hour"`
 }
 
 type Feed struct {
