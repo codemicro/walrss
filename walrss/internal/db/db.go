@@ -62,6 +62,12 @@ func (f *Feed) CacheWithLastModified(lastModified, content string) {
 	f.CachedContent = content
 }
 
+func (f *Feed) ClearCache() {
+	f.LastEtag = ""
+	f.LastModified = ""
+	f.CachedContent = ""
+}
+
 type FeedSlice []*Feed
 
 func (f FeedSlice) Len() int {

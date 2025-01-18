@@ -298,7 +298,9 @@ func StreamRenderFeedEditRow(qw422016 *qt422016.Writer, id, name, url string) {
             value="`)
 	qw422016.E().J(url)
 	qw422016.N().S(`"
-    ></td>
+    ><input type="hidden" name="old-url" value="`)
+	qw422016.E().J(url)
+	qw422016.N().S(`"></td>
     <td>
         <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
             <button

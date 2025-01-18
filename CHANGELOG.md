@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.3.8 - 2025-01-18
+### Fixed
+* Cached feed content and corresponding etags/last modified headers are now cleared when the URL of a feed entry is updated
+
 ## 0.3.7 - 2023-04-08
 ### Fixed
 * Remove potential race condition caused by using `RLock` instead of `Lock`

@@ -107,6 +107,10 @@ func (s *Server) editFeedItem(ctx *fiber.Ctx) error {
 		feed.Name = ctx.FormValue("name")
 		feed.URL = ctx.FormValue("url")
 
+		if urlChanged := feed.URL != ctx.FormValue("old-url"); urlChanged {
+			feed.ClearCache()
+		}
+
 		if err := core.UpdateFeed(s.state, feed); err != nil {
 			return err
 		}
