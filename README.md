@@ -66,6 +66,7 @@ email:
 platform:
   disableRegistration: false
   disableSecureCookies: false
+  contactInformation: "https://example.com"  # optional. will be included in the user agent if set.
 oidc:
   enable: false
   clientID: "yourclientid"

@@ -36,7 +36,7 @@ type Config struct {
 	Platform struct {
 		DisableRegistration  bool   `fig:"disableRegistration"`
 		DisableSecureCookies bool   `fig:"disableSecureCookies"`
-		ContactInformation   string `fig:"contactInformation" validate:"required"`
+		ContactInformation   string `fig:"contactInformation"`
 	}
 	OIDC struct {
 		Enable       bool   `fig:"enable"`

@@ -42,7 +42,14 @@ func getUserAgent(st *state.State) string {
 		} else if core.Version != "" {
 			o += "/" + core.Version
 		}
-		o += " (" + st.Config.Platform.ContactInformation + ", https://github.com/codemicro/walrss)"
+		
+		var parts []string
+		if st.Config.Platform.ContactInformation != "" {
+			parts = append(parts, st.Config.Platform.ContactInformation)
+		}
+		parts = append(parts, "https://github.com/codemicro/walrss")
+		
+		o += " (" + strings.Join(parts, ", ") + ")"
 		ua.ua = o
 	})
 	return ua.ua
