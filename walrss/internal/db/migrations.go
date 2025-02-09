@@ -2,16 +2,23 @@ package db
 
 import (
 	"context"
+	"embed"
 	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
 	"time"
 )
 
-var (
-	migs      = migrate.NewMigrations()
-	migLogger = log.Logger.With().Str("location", "migrations").Logger()
-)
+var migs = migrate.NewMigrations()
+
+//go:embed *.sql
+var sqlMigrations embed.FS
+
+func init() {
+	if err := migs.Discover(sqlMigrations); err != nil {
+		panic(err)
+	}
+}
 
 func DoMigrations(db *bun.DB) error {
 	log.Info().Msg("running migrations")
