@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"github.com/codemicro/walrss/walrss/internal/core"
 	"github.com/codemicro/walrss/walrss/internal/http/views"
 	"github.com/codemicro/walrss/walrss/internal/state"
@@ -40,14 +41,18 @@ func New(st *state.State) (*Server, error) {
 			code := fiber.StatusInternalServerError
 			msg := "Internal Server Error"
 
-			switch e := err.(type) {
-			case *fiber.Error:
-				code = e.Code
-				msg = err.Error()
-			case *core.UserError:
-				code = e.Status
-				msg = err.Error()
-			default:
+			var (
+				fiberErr *fiber.Error
+				userErr  *core.UserError
+			)
+
+			if errors.As(err, &fiberErr) {
+				code = fiberErr.Code
+				msg = fiberErr.Error()
+			} else if errors.As(err, &userErr) {
+				code = userErr.Status
+				msg = userErr.Error()
+			} else {
 				log.Error().Err(err).Str("location", "http").Str("url", ctx.OriginalURL()).Send()
 			}
 
