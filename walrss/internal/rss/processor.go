@@ -13,7 +13,6 @@ import (
 	"github.com/jordan-wright/email"
 	"github.com/matcornic/hermes"
 	"github.com/mmcdole/gofeed"
-	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"net/smtp"
@@ -162,69 +161,73 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 	return err
 }
 
-var (
-	feedCache     = cache.New(time.Minute*10, time.Minute*20)
-	feedFetchLock = new(sync.Mutex)
-)
+var feedFetchLock = new(sync.Mutex)
 
 func getFeedContent(st *state.State, f *db.Feed) (*gofeed.Feed, error) {
-	feedFetchLock.Lock()
+	feedFetchLock.Lock() // I would like to be able to get rid of this lock, however, in order to do so, a lot of the
+	// database infrastructure needs removing and rewriting to use proper transactions. So we'll leave it here for now.
 	defer feedFetchLock.Unlock()
 
-	if v, found := feedCache.Get(f.URL); found {
-		return v.(*gofeed.Feed), nil
-	}
-
 	buf := new(bytes.Buffer)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
 
-	var notModified bool
-	headers := make(textproto.MIMEHeader)
+	// If a feed was cached in the last hour, Walrss will not re-query the remote server and will just use the cache.
+	hasCachedFeed := f.CachedContent != ""
+	cachedFeedIsFresh := !f.LastFetched.IsZero() && time.Now().UTC().Sub(f.LastFetched) < time.Hour
 
-	requestBuilder := requests.URL(f.URL).ToBytesBuffer(buf).UserAgent(getUserAgent(st)).CopyHeaders(headers)
-
-	if f.LastEtag != "" || f.LastModified != "" {
-		requestBuilder.AddValidator(
-			func(resp *http.Response) error {
-				if resp.StatusCode == http.StatusNotModified {
-					notModified = true
-					return nil
-				} else {
-					return requests.DefaultValidator(resp)
-				}
-			},
-		)
-
-		if f.LastEtag != "" {
-			requestBuilder.Header("If-None-Match", f.LastEtag)
-		} else if f.LastModified != "" {
-			requestBuilder.Header("If-Modified-Since", f.LastModified)
-		}
-
-	} else {
-		requestBuilder.AddValidator(requests.DefaultValidator) // Since we're using CopyHeaders, we need to add the
-		// default validator back ourselves.
-	}
-
-	if err := requestBuilder.Fetch(ctx); err != nil {
-		return nil, err
-	}
-
-	if notModified {
-		log.Debug().Msgf("%s not modified", f.URL)
+	if hasCachedFeed && cachedFeedIsFresh {
+		log.Debug().Msgf("%s using fresh cache (%v)", f.URL, f.LastFetched)
 		buf.WriteString(f.CachedContent)
-	} else if etag := headers.Get("ETag"); etag != "" {
-		log.Debug().Msgf("%s modified (ETag)", f.URL)
-		f.CacheWithEtag(etag, buf.String())
-		if err := core.UpdateFeed(st, f); err != nil {
-			return nil, fmt.Errorf("failed to cache ETag-ed response: %v", err)
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+
+		var notModified bool
+		headers := make(textproto.MIMEHeader)
+
+		requestBuilder := requests.URL(f.URL).ToBytesBuffer(buf).UserAgent(getUserAgent(st)).CopyHeaders(headers)
+
+		if f.LastEtag != "" || f.LastModified != "" {
+			requestBuilder.AddValidator(
+				func(resp *http.Response) error {
+					if resp.StatusCode == http.StatusNotModified {
+						notModified = true
+						return nil
+					} else {
+						return requests.DefaultValidator(resp)
+					}
+				},
+			)
+
+			if f.LastEtag != "" {
+				requestBuilder.Header("If-None-Match", f.LastEtag)
+			} else if f.LastModified != "" {
+				requestBuilder.Header("If-Modified-Since", f.LastModified)
+			}
+
+		} else {
+			requestBuilder.AddValidator(requests.DefaultValidator) // Since we're using CopyHeaders, we need to add the
+			// default validator back ourselves.
 		}
-	} else if lastModified := headers.Get("Last-Modified"); lastModified != "" {
-		log.Debug().Msgf("%s modified (Last-Modified)", f.URL)
-		f.CacheWithLastModified(lastModified, buf.String())
+
+		if err := requestBuilder.Fetch(ctx); err != nil {
+			return nil, err
+		}
+
+		f.LastFetched = time.Now().UTC()
+
+		if notModified {
+			log.Debug().Msgf("%s not modified", f.URL)
+			buf.WriteString(f.CachedContent)
+		} else if etag := headers.Get("ETag"); etag != "" {
+			log.Debug().Msgf("%s modified (ETag)", f.URL)
+			f.SetCacheWithEtag(etag, buf.String())
+		} else if lastModified := headers.Get("Last-Modified"); lastModified != "" {
+			log.Debug().Msgf("%s modified (Last-Modified)", f.URL)
+			f.SetCacheWithLastModified(lastModified, buf.String())
+		}
+
 		if err := core.UpdateFeed(st, f); err != nil {
-			return nil, fmt.Errorf("failed to cache Last-Modified enabled response: %v", err)
+			return nil, fmt.Errorf("update feed after fetch: %v", err)
 		}
 	}
 
@@ -232,8 +235,6 @@ func getFeedContent(st *state.State, f *db.Feed) (*gofeed.Feed, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	_ = feedCache.Add(f.URL, feed, cache.DefaultExpiration)
 
 	return feed, nil
 }

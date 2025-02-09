@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+* Feed fetching will reuse cached content within an hour of a previous fetch without checking for a HTTP 304 (Not Modified) from the remote resource 
 
 ## 0.4.0 - 2025-02-09
 ### Changed

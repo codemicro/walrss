@@ -7,6 +7,7 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"strings"
+	"time"
 )
 
 func New(filename string) (*bun.DB, error) {
@@ -43,20 +44,21 @@ type Feed struct {
 	Name   string `bun:"name,notnull"`
 	UserID string `bun:"user_id,notnull"`
 
-	LastEtag      string `bun:"last_etag,nullzero"`
-	LastModified  string `bun:"last_modified,nullzero"`
-	CachedContent string `bun:"cached_content,nullzero"`
+	LastFetched   time.Time `bun:"last_fetched,nullzero"`
+	LastEtag      string    `bun:"last_etag,nullzero"`
+	LastModified  string    `bun:"last_modified,nullzero"`
+	CachedContent string    `bun:"cached_content,nullzero"`
 
 	User *User `bun:",rel:belongs-to,join:user_id=id"`
 }
 
-func (f *Feed) CacheWithEtag(etag, content string) {
+func (f *Feed) SetCacheWithEtag(etag, content string) {
 	f.LastModified = ""
 	f.LastEtag = etag
 	f.CachedContent = content
 }
 
-func (f *Feed) CacheWithLastModified(lastModified, content string) {
+func (f *Feed) SetCacheWithLastModified(lastModified, content string) {
 	f.LastEtag = ""
 	f.LastModified = lastModified
 	f.CachedContent = content
