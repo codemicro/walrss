@@ -15,6 +15,9 @@ func NewFeedItem(st *state.State, feedID, itemID string) (*db.FeedItem, error) {
 }
 
 func NewFeedItems(st *state.State, fis []*db.FeedItem) error {
+	if len(fis) == 0 {
+		return nil
+	}
 	_, err := st.Data.NewInsert().Model(&fis).Exec(context.Background())
 	return err
 }
