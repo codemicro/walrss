@@ -6,13 +6,13 @@ import (
 	"github.com/codemicro/walrss/walrss/internal/state"
 )
 
-func NewFeedItem(st *state.State, feedID, itemID string) (*db.FeedItem, error) {
-	fi := &db.FeedItem{
-		FeedID: feedID,
-		ItemID: itemID,
-	}
-	return fi, NewFeedItems(st, []*db.FeedItem{fi})
-}
+//func NewFeedItem(st *state.State, feedID, itemID string) (*db.FeedItem, error) {
+//	fi := &db.FeedItem{
+//		FeedID: feedID,
+//		ItemID: itemID,
+//	}
+//	return fi, NewFeedItems(st, []*db.FeedItem{fi})
+//}
 
 func NewFeedItems(st *state.State, fis []*db.FeedItem) error {
 	if len(fis) == 0 {
