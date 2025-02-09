@@ -120,21 +120,28 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 			pf.Error = err
 			reportProgress(progressChannel, "Failed to fetch: "+err.Error())
 		} else {
-			// Instead of just using the interval, we want to include everything from the earliest day specified by
-			// the interval.
-			//
-			// Say we were running at 5AM and we had an interval of 24 hours. We'd select all the feed items from up to
-			// 5AM from the day before. Sometimes, this would end up with feeds published at exactly midnight being
-			// ignored, for example.
-			//
-			// This doesn't explain it well, but I don't quite understand it, so this is what you're getting.
-
-			t := time.Now().UTC().Add(-interval)
-
-			pf.Items = filterFeedContent(
+			pf.Items, err = filterFeedContent(
+				st,
 				rawFeed,
-				time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC),
+				f.ID,
 			)
+			if err != nil {
+				return fmt.Errorf("filter for new feed items in %s: %w", f.ID, err)
+			}
+
+			// add new items to DB cache
+			{
+				var newItems []*db.FeedItem
+				for _, i := range pf.Items {
+					newItems = append(newItems, &db.FeedItem{
+						FeedID: f.ID,
+						ItemID: i.ID,
+					})
+				}
+				if err := core.NewFeedItems(st, newItems); err != nil {
+					return fmt.Errorf("insert new feed items for feed %s: %w", f.ID, err)
+				}
+			}
 		}
 		processedFeeds = append(processedFeeds, pf)
 	}
@@ -240,23 +247,29 @@ func getFeedContent(st *state.State, f *db.Feed) (*gofeed.Feed, error) {
 }
 
 type feedItem struct {
+	ID          string
 	Title       string
 	URL         string
 	PublishTime time.Time
 }
 
-func filterFeedContent(feed *gofeed.Feed, earliestPublishTime time.Time) []*feedItem {
+func filterFeedContent(st *state.State, feed *gofeed.Feed, feedID string) ([]*feedItem, error) {
+	knownItemsList, err := core.GetFeedItemsForFeed(st, feedID)
+	if err != nil {
+		return nil, fmt.Errorf("get known feed items: %w", err)
+	}
+
+	knownItems := make(map[string]struct{})
+	for _, i := range knownItemsList {
+		knownItems[i.ItemID] = struct{}{}
+	}
+
 	var o []*feedItem
 
 	for _, item := range feed.Items {
-		if item.PublishedParsed == nil {
-			continue
-		}
-
-		*item.PublishedParsed = item.PublishedParsed.UTC()
-
-		if item.PublishedParsed.After(earliestPublishTime) || item.PublishedParsed.Equal(earliestPublishTime) {
+		if _, found := knownItems[item.GUID]; !found {
 			o = append(o, &feedItem{
+				ID:          item.GUID,
 				Title:       strings.TrimSpace(item.Title),
 				URL:         item.Link,
 				PublishTime: *item.PublishedParsed,
@@ -264,7 +277,7 @@ func filterFeedContent(feed *gofeed.Feed, earliestPublishTime time.Time) []*feed
 		}
 	}
 
-	return o
+	return o, nil
 }
 
 func generateEmail(st *state.State, processedItems []*processedFeed, interval, timeToGenerate time.Duration) (plain, html []byte, err error) {
