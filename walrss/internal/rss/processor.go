@@ -268,6 +268,10 @@ func filterFeedContent(st *state.State, feed *gofeed.Feed, feedID string) ([]*fe
 
 	for _, item := range feed.Items {
 		if _, found := knownItems[item.GUID]; !found {
+			if item.PublishedParsed == nil {
+				item.PublishedParsed = &time.Time{}
+			}
+
 			o = append(o, &feedItem{
 				ID:          item.GUID,
 				Title:       strings.TrimSpace(item.Title),

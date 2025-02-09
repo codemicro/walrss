@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.4.2 - 2025-02-09
+### Fixed
+* Prevent nil dereference when feeds without published dates are processed
+
 ## 0.4.1 - 2025-02-09
 ### Changed
 * Feed fetching will reuse cached content within an hour of a previous fetch without checking for a HTTP 304 (Not Modified) from the remote resource
