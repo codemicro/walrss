@@ -6,7 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 ### Changed
-* Feed fetching will reuse cached content within an hour of a previous fetch without checking for a HTTP 304 (Not Modified) from the remote resource 
+* Feed fetching will reuse cached content within an hour of a previous fetch without checking for a HTTP 304 (Not Modified) from the remote resource
+* Detect new feed items by checking against a stored list of all known items for that feed
 
 ## 0.4.0 - 2025-02-09
 ### Changed
