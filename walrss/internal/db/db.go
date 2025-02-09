@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun"
@@ -19,6 +20,10 @@ func New(filename string) (*bun.DB, error) {
 	}
 
 	db.SetMaxOpenConns(1) // https://github.com/mattn/go-sqlite3/issues/274#issuecomment-191597862
+
+	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
+		return nil, fmt.Errorf("setting PRAGMA foreign_keys = ON: %w", err)
+	}
 
 	return bun.NewDB(db, sqlitedialect.New()), nil
 }
