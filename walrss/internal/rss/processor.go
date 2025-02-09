@@ -42,13 +42,13 @@ func getUserAgent(st *state.State) string {
 		} else if core.Version != "" {
 			o += "/" + core.Version
 		}
-		
+
 		var parts []string
 		if st.Config.Platform.ContactInformation != "" {
 			parts = append(parts, st.Config.Platform.ContactInformation)
 		}
 		parts = append(parts, "https://github.com/codemicro/walrss")
-		
+
 		o += " (" + strings.Join(parts, ", ") + ")"
 		ua.ua = o
 	})
@@ -370,17 +370,43 @@ func sendEmail(st *state.State, plain, html []byte, to, subject string) error {
 		return nil
 	}
 
-	return (&email.Email{
+	e := &email.Email{
 		From:    st.Config.Email.From,
 		To:      []string{to},
 		Subject: subject,
 		Text:    plain,
 		HTML:    html,
-	}).SendWithStartTLS(
-		fmt.Sprintf("%s:%d", st.Config.Email.Host, st.Config.Email.Port),
-		smtp.PlainAuth("", st.Config.Email.Username, st.Config.Email.Password, st.Config.Email.Host),
-		&tls.Config{
-			ServerName: st.Config.Email.Host,
-		},
-	)
+	}
+
+	var smtpAuth smtp.Auth
+	if st.Config.Email.Username != "" || st.Config.Email.Password != "" {
+		smtpAuth = smtp.PlainAuth("", st.Config.Email.Username, st.Config.Email.Password, st.Config.Email.Host)
+	}
+
+	smtpAddr := fmt.Sprintf("%s:%d", st.Config.Email.Host, st.Config.Email.Port)
+
+	var sendFn func(*email.Email) error
+
+	switch st.Config.Email.TLS {
+	case "no":
+		sendFn = func(e *email.Email) error {
+			return e.Send(smtpAddr, smtpAuth)
+		}
+	case "tls":
+		sendFn = func(e *email.Email) error {
+			return e.SendWithTLS(smtpAddr, smtpAuth, &tls.Config{
+				ServerName: st.Config.Email.Host,
+			})
+		}
+	case "starttls":
+		sendFn = func(e *email.Email) error {
+			return e.SendWithStartTLS(smtpAddr, smtpAuth, &tls.Config{
+				ServerName: st.Config.Email.Host,
+			})
+		}
+	default:
+		return fmt.Errorf("unknown TLS option %s", st.Config.Email.TLS)
+	}
+
+	return sendFn(e)
 }

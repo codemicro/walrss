@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Unreleased
 ### Changed
 * Make including contact information in the user agent optional
+* Support selecting a TLS mode for email (STARTTLS, TLS or none)
+* Support not using a username/password for email authentication
 
 ## 0.3.8 - 2025-01-18
 ### Fixed

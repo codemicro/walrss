@@ -56,13 +56,14 @@ server:
   # This is a required field
   externalURL: "http://127.0.0.1:8080"
 email:
-  # Defaults are not provided for any email option
-  # All of the below are required fields
-  password: "yourapikey"
-  username: "apikey"
+  # These are required fields
   host: "smtp.sendgrid.net"
   port: 587
   from: "Walrss <walrss@yourdomain.com>"
+  # These fields are not required
+  tls: "" # valid values are: starttls, tls, no - default: starttls
+  password: "yourapikey"
+  username: "apikey"
 platform:
   disableRegistration: false
   disableSecureCookies: false

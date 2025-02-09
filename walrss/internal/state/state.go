@@ -23,10 +23,11 @@ func New() *State {
 type Config struct {
 	Email struct {
 		Host     string `fig:"host" validate:"required"`
-		Username string `fig:"username" validate:"required"`
-		Password string `fig:"password" validate:"required"`
-		From     string `fig:"from" validate:"required"`
 		Port     int    `fig:"port" validate:"required"`
+		Username string `fig:"username"`
+		Password string `fig:"password"`
+		From     string `fig:"from" validate:"required"`
+		TLS      string `fig:"tls" default:"starttls"`
 	}
 	Server struct {
 		Host        string `fig:"host" default:"127.0.0.1"`
@@ -68,6 +69,10 @@ func LoadConfig() (*Config, error) {
 	}
 
 	cfg.Server.ExternalURL = strings.TrimSuffix(cfg.Server.ExternalURL, "/")
+
+	if cfg.Email.TLS != "tls" && cfg.Email.TLS != "starttls" && cfg.Email.TLS != "no" {
+		return nil, errors.New("invalid email.tls value: must be 'starttls', 'tls' or 'no'")
+	}
 
 	if !cfg.Debug {
 		log.Logger = log.Logger.Level(zerolog.InfoLevel)
