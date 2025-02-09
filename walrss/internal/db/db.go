@@ -88,3 +88,12 @@ func (f FeedSlice) Less(i, j int) bool {
 func (f FeedSlice) Swap(i, j int) {
 	f[i], f[j] = f[j], f[i]
 }
+
+type FeedItem struct {
+	bun.BaseModel `bun:"table:feed_items"`
+
+	FeedID string `bun:"feed_id,notnull"`
+	ItemID string `bun:"item_id,notnull"`
+
+	// Feed *Feed `bun:",rel:belongs-to,join:feed_id=id"` // don't think this is needed but here in case??
+}
