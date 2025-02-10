@@ -33,6 +33,26 @@ func NewFeed(st *state.State, userID, name, url string) (*db.Feed, error) {
 	return feed, nil
 }
 
+func NewFeeds(st *state.State, userID string, fs []*db.Feed) error {
+	if len(fs) == 0 {
+		return nil
+	}
+
+	for i, f := range fs {
+		f.ID = shortuuid.New()
+		f.UserID = userID
+		if err := validateFeedName(f.Name); err != nil {
+			return NewUserErrorWithStatus(400, "validate feed %d: %w", i, err)
+		}
+		if err := validateURL(f.URL); err != nil {
+			return NewUserErrorWithStatus(400, "validate feed %d: %w", i, err)
+		}
+	}
+
+	_, err := st.Data.NewInsert().Model(&fs).Exec(context.Background())
+	return err
+}
+
 func GetFeedsForUser(st *state.State, userID string) (res []*db.Feed, err error) {
 	err = st.Data.NewSelect().
 		Model(&res).
@@ -110,14 +130,17 @@ func ImportFeedsForUser(st *state.State, userID string, opmlXML []byte) error {
 		}
 	}
 
-	for _, feed := range o.ToFeeds() {
-		if _, found := existingURLs[feed.URL]; found {
-			continue
-		}
-		if _, err := NewFeed(st, userID, feed.Name, feed.URL); err != nil {
-			return err
+	var (
+		fs = o.ToFeeds()
+		n  int
+	)
+	for _, feed := range fs {
+		if _, found := existingURLs[feed.URL]; !found {
+			fs[n] = feed
+			n += 1
 		}
 	}
+	fs = fs[:n]
 
-	return nil
+	return NewFeeds(st, userID, fs)
 }
