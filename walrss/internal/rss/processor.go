@@ -120,8 +120,9 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 			pf.Error = err
 			reportProgress(progressChannel, "Failed to fetch: "+err.Error())
 		} else {
-			pf.Items, err = filterFeedContent(
+			ffcRes, err := filterFeedContent(
 				st,
+				interval,
 				rawFeed,
 				f.ID,
 			)
@@ -129,10 +130,12 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 				return fmt.Errorf("filter for new feed items in %s: %w", f.ID, err)
 			}
 
+			pf.Items = ffcRes.filtered
+
 			// add new items to DB cache
 			{
 				var newItems []*db.FeedItem
-				for _, i := range pf.Items {
+				for _, i := range ffcRes.new {
 					newItems = append(newItems, &db.FeedItem{
 						FeedID: f.ID,
 						ItemID: i.ID,
@@ -253,7 +256,20 @@ type feedItem struct {
 	PublishTime time.Time
 }
 
-func filterFeedContent(st *state.State, feed *gofeed.Feed, feedID string) ([]*feedItem, error) {
+type filterFeedContentResult struct {
+	// filtered are the items that should be shown to a user in an email
+	filtered []*feedItem
+
+	// items are the items that have never been seen before and should be added to the database.
+	//
+	// items in new may only have the ID field set.
+	new []*feedItem
+
+	// filtered and new may differ when using time-based intervals and only a recently-published portion of the overall
+	// new set should be shown to the user.
+}
+
+func filterFeedContent(st *state.State, interval time.Duration, feed *gofeed.Feed, feedID string) (*filterFeedContentResult, error) {
 	knownItemsList, err := core.GetFeedItemsForFeed(st, feedID)
 	if err != nil {
 		return nil, fmt.Errorf("get known feed items: %w", err)
@@ -264,24 +280,60 @@ func filterFeedContent(st *state.State, feed *gofeed.Feed, feedID string) ([]*fe
 		knownItems[i.ItemID] = struct{}{}
 	}
 
-	var o []*feedItem
+	res := new(filterFeedContentResult)
 
-	for _, item := range feed.Items {
-		if _, found := knownItems[item.GUID]; !found {
+	if len(knownItemsList) == 0 {
+		// This might happen in the case of database migrations or when a new feed is added.
+		// In this instance, we'll fall back to the old behaviour of using a time interval to select new posts.
+
+		// Intervals are in terms of days, never hours.
+		// This gets a data for the previous day/week and sets it to the start of that day.
+
+		selectPublishedSince := time.Now().UTC().Add(-interval)
+		selectPublishedSince = time.Date(selectPublishedSince.Year(), selectPublishedSince.Month(), selectPublishedSince.Day(), 0, 0, 0, 0, time.UTC)
+
+		for _, item := range feed.Items {
+			res.new = append(res.new, &feedItem{ID: item.GUID})
+
 			if item.PublishedParsed == nil {
-				item.PublishedParsed = &time.Time{}
+				continue
 			}
 
-			o = append(o, &feedItem{
-				ID:          item.GUID,
-				Title:       strings.TrimSpace(item.Title),
-				URL:         item.Link,
-				PublishTime: *item.PublishedParsed,
-			})
+			if item.PublishedParsed.After(selectPublishedSince) || item.PublishedParsed.Equal(selectPublishedSince) {
+				if item.PublishedParsed == nil {
+					item.PublishedParsed = &time.Time{}
+				}
+
+				res.filtered = append(res.filtered, &feedItem{
+					ID:          item.GUID,
+					Title:       strings.TrimSpace(item.Title),
+					URL:         item.Link,
+					PublishTime: *item.PublishedParsed,
+				})
+			}
+		}
+
+	} else {
+		for _, item := range feed.Items {
+			if _, found := knownItems[item.GUID]; found {
+				if item.PublishedParsed == nil {
+					item.PublishedParsed = &time.Time{}
+				}
+
+				x := &feedItem{
+					ID:          item.GUID,
+					Title:       strings.TrimSpace(item.Title),
+					URL:         item.Link,
+					PublishTime: *item.PublishedParsed,
+				}
+
+				res.new = append(res.new, x)
+				res.filtered = append(res.filtered, x)
+			}
 		}
 	}
 
-	return o, nil
+	return res, nil
 }
 
 func generateEmail(st *state.State, processedItems []*processedFeed, interval, timeToGenerate time.Duration) (plain, html []byte, err error) {
