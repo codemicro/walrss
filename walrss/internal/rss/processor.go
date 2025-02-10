@@ -67,7 +67,7 @@ func ProcessFeeds(st *state.State, day db.SendDay, hour int) error {
 	}
 
 	for _, ur := range u {
-		if err := ProcessUserFeed(st, ur, nil); err != nil {
+		if err := ProcessUserFeed(st, ur, nil, false); err != nil {
 			log.Warn().Err(err).Str("user", ur.ID).Msg("could not process feeds for user")
 		}
 	}
@@ -82,7 +82,7 @@ func reportProgress(channel chan string, msg string) {
 	channel <- msg
 }
 
-func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string) error {
+func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string, isTest bool) error {
 	defer func() {
 		if progressChannel == nil {
 			return
@@ -132,8 +132,9 @@ func ProcessUserFeed(st *state.State, user *db.User, progressChannel chan string
 
 			pf.Items = ffcRes.filtered
 
-			// add new items to DB cache
-			{
+			// add new items to DB cache when we're not testing. if we're testing, adding known items to the cache will
+			// stop them from appearing in any scheduled emails later on.
+			if !isTest {
 				var newItems []*db.FeedItem
 				for _, i := range ffcRes.new {
 					newItems = append(newItems, &db.FeedItem{

@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 * When no feed items are stored in the database for a particular feed, fall back to using the old time-based detection method
 * Do not index feed items at addition time
+* Do not update feed item index when sending a test email to prevent items being missed from the main scheduled emails 
 
 ## 0.4.2 - 2025-02-09
 ### Fixed

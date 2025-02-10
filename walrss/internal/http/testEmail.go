@@ -33,7 +33,7 @@ func (s *Server) sendTestEmail(ctx *fiber.Ctx) error {
 
 		var err error
 		go func() {
-			err = rss.ProcessUserFeed(s.state, user, status)
+			err = rss.ProcessUserFeed(s.state, user, status, true)
 		}()
 
 		for statusAddition := range status {
