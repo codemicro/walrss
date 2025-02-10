@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Unreleased
 ### Changed
 * When no feed items are stored in the database for a particular feed, fall back to using the old time-based detection method
+* Do not index feed items at addition time
 
 ## 0.4.2 - 2025-02-09
 ### Fixed
