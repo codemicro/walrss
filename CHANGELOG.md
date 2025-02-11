@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## 0.4.4 - 2025-02-11
+### Fixed
+* Flip inverted boolean check that filtered out unseen articles instead of seen articles
+
 ## 0.4.3 - 2025-02-11
 ### Changed
 * When no feed items are stored in the database for a particular feed, fall back to using the old time-based detection method

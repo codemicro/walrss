@@ -316,7 +316,7 @@ func filterFeedContent(st *state.State, interval time.Duration, feed *gofeed.Fee
 
 	} else {
 		for _, item := range feed.Items {
-			if _, found := knownItems[item.GUID]; found {
+			if _, found := knownItems[item.GUID]; !found {
 				if item.PublishedParsed == nil {
 					item.PublishedParsed = &time.Time{}
 				}
